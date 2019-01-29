@@ -1,0 +1,39 @@
+services:
+  web:
+    build:
+      path: .
+      manifest: ./dockerfiles/web/Dockerfile
+    command: sdfg
+    domain: scrimmage.pokerbots.org
+    environment:
+      - PRODUCTION=True
+      - SQLALCHEMY_DATABASE_URI
+      - CELERY_BROKER_URL
+      - MESSAGE_QUEUE_URL
+      - SECRET_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - S3_REGION
+      - S3_BUCKET
+    port: 8000
+    scale:
+      cpu: 512
+      memory: 512
+  worker:
+    build:
+      path: .
+      manifest: ./dockerfiles/worker/Dockerfile
+    command: celery -A scrimmage.celery_app worker --loglevel=info --concurrency=1
+    environment:
+      - PRODUCTION=True
+      - SQLALCHEMY_DATABASE_URI
+      - CELERY_BROKER_URL
+      - MESSAGE_QUEUE_URL
+      - SECRET_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - S3_REGION
+      - S3_BUCKET
+    scale:
+      cpu: 1000
+      memory: 1536

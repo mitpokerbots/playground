@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pokerbots playground admin</title>
+</head>
+<body>
+<h1>Pokerbots playground admin</h1>
+
+<h2>Import bots from scrimmage</h2>
+
+<form method="POST">
+<p>Copy the data from "Export to Playground" on the scrimmage server below</p>
+<textarea name='export_data' placeholder='copy and paste all the json'></textarea><br />
+<button type="submit">Import and replace</button>
+</form>
+<h2>Imported teams and bots</h2>
+{% for team in teams %}
+<h3>{{ team.name }}</h3>
+<ul>
+{% for bot in team.bots %}
+    <li>{{ bot.name }}</li>
+{% endfor %}
+</ul>
+{% endfor %}
+</body>
+</html>

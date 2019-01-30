@@ -65,7 +65,7 @@ class ConnectionStatusMenu extends Component {
   render() {
     return (
       <Menu fixed='top' inverted borderless>
-        <Menu.Item>
+        <Menu.Item href="/">
           <img src='/logo_clear.png' alt="" />
           &nbsp; Pokerbots Playground
         </Menu.Item>

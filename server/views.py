@@ -1,10 +1,11 @@
 from functools import wraps
 from flask import abort, session, g, Response, request, render_template
-from flask_socketio import emit
+from flask_socketio import emit, join_room
 import json
 
 from server import app, db, socketio
-from server.models import Game, Bot, Team
+from server.models import Game, GameStatus, Bot, Team
+from server.tasks import play_live_game_task
 
 def _check_auth(username, password):
   """This function is called to check if a username /
@@ -75,4 +76,22 @@ def on_request_bots(*args, **kwargs):
 
 @socketio.on('create_game')
 def on_create_game(bot_id):
-  bot_id = Bot.query.get(bot_id)
+  bot = Bot.query.get(bot_id)
+  game = Game(bot)
+  db.session.add(game)
+  db.session.commit()
+  play_live_game_task.delay(game.id)
+  return game.uuid
+
+
+@socketio.on('join_game')
+def on_join_game(game_uuid):
+  game = Game.query.filter(Game.uuid == game_uuid).one_or_none()
+  if game is None:
+    return None
+
+  if game.status == GameStatus.created or game.status == GameStatus.in_progress:
+    join_room(game.uuid)
+  
+  return game.as_json()
+

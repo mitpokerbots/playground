@@ -1,6 +1,6 @@
-import enum, datetime, uuid
+import enum, datetime, uuid, json
 
-from server import app, db
+from server import app, db, socketio
 
 class Bot(db.Model):
   __tablename__ = 'bots'
@@ -41,7 +41,30 @@ class Game(db.Model):
   uuid = db.Column(db.String(128), nullable=False, index=True, unique=True)
   status = db.Column(db.Enum(GameStatus), nullable=False)
 
+  last_message_json = db.Column(db.Text)
+
   def __init__(self, bot):
     self.bot = bot
     self.status = GameStatus.created
     self.uuid = str(uuid.uuid4())
+
+  @property
+  def last_message(self):
+    return json.loads(self.last_message_json) if self.last_message_json is not None else None
+
+  def send_message(self, data):
+    self.last_message_json = json.dumps(data)
+    db.session.commit()
+    socketio.emit('game_update', self.as_json(), room=self.uuid)
+
+  def as_json(self):
+    return {
+      'uuid': self.uuid,
+      'bot': {
+        'team': self.bot.team.name,
+        'name': self.bot.name
+      },
+      'status': self.status.value,
+      'last_message': self.last_message
+    }
+

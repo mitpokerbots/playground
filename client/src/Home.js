@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Header, Icon, Container, Segment, Button, Form } from 'semantic-ui-react';
+import { withRouter } from 'react-router-dom';
 
 import { SocketConsumer } from './SocketContext';
 
@@ -11,6 +12,7 @@ class Home extends Component {
       teams: null,
       selectedTeam: null,
       selectedBot: null,
+      loadingChallenge: false,
     }
   }
 
@@ -56,9 +58,14 @@ class Home extends Component {
   }
 
   challengeBot = () => {
-    this.props.socket.emit('create_game', (result) => {
-      this.setState({ teams: result.teams });
-      console.log(result);
+    this.setState({
+      loadingChallenge: true
+    })
+    this.props.socket.emit('create_game', this.state.selectedBot, (gameUuid) => {
+      this.setState({
+        loadingChallenge: false
+      })
+      this.props.history.push('/game/' + gameUuid);
     })
   }
 
@@ -109,7 +116,8 @@ class Home extends Component {
                     color='green'
                     onClick={this.challengeBot}
                     fluid
-                    disabled={this.state.selectedBot == null}>Challenge!</Button>
+                    loading={this.state.loadingChallenge}
+                    disabled={this.state.selectedBot == null || this.state.loadingChallenge}>Challenge!</Button>
                 </div>
               </Form>
             </Segment>
@@ -126,4 +134,4 @@ const HomeWithSocket = (props) => (
   </SocketConsumer>
 );
 
-export default HomeWithSocket;
+export default withRouter(HomeWithSocket);

@@ -1,15 +1,7 @@
 import React, { Component } from 'react';
 
 import {
-  Container,
-  Divider,
-  Dropdown,
-  Grid,
-  Header,
-  Image,
-  List,
   Menu,
-  Segment,
   Icon,
 } from 'semantic-ui-react'
 
@@ -35,7 +27,7 @@ class ConnectionStatusMenu extends Component {
   }
 
   handleConnectError = () => {
-    if (this.state.status != 'reconnecting') {
+    if (this.state.status !== 'reconnecting') {
       this.setState({
         status: "disconnected"
       })
@@ -74,7 +66,7 @@ class ConnectionStatusMenu extends Component {
     return (
       <Menu fixed='top' inverted borderless>
         <Menu.Item>
-          <img src='/logo_clear.png' />
+          <img src='/logo_clear.png' alt="" />
           &nbsp; Pokerbots Playground
         </Menu.Item>
         { this.state.status === "connecting" && (

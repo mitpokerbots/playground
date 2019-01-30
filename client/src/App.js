@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { SocketProvider } from './SocketContext';
-
 import * as io from 'socket.io-client';
-
-import ConnectionStatusMenu from './ConnectionStatusMenu';
 import 'semantic-ui-css/semantic.min.css';
+import { BrowserRouter as Router, Route } from "react-router-dom";
 
+import { SocketProvider } from './SocketContext';
+import ConnectionStatusMenu from './ConnectionStatusMenu';
+import Home from './Home';
+import Game from './Game';
 
 const connectURL = (
   (process.env.NODE_ENV === 'development') ?
@@ -22,9 +23,17 @@ class App extends Component {
   render() {
     return (
       <SocketProvider value={socket}>
-        <div>
-          <ConnectionStatusMenu socket={socket} />
-        </div>
+        <Router>
+          <div style={{ height: "100vh", display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: "50px" }}>
+              <ConnectionStatusMenu socket={socket} />
+            </div>
+            <div style={{ flex: '1' }}>
+              <Route path="/" exact component={Home} />
+              <Route path="/game/:id" component={Game} />          
+            </div>
+          </div>
+        </Router>
       </SocketProvider>
     );
   }

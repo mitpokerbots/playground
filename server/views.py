@@ -1,5 +1,6 @@
 from functools import wraps
 from flask import abort, session, g, Response, request, render_template
+from flask_socketio import emit
 import json
 
 from server import app, db, socketio
@@ -53,3 +54,25 @@ def admin_page():
 
     teams = Team.query.all()
     return render_template('admin.html', teams=teams)
+
+
+@socketio.on('request_bots')
+def on_request_bots(*args, **kwargs):
+  teams = Team.query.all()
+  result = { 'teams': [] }
+  teams = list(teams)
+  teams.sort(key=lambda t: t.name.strip().lower())
+  for team in teams:
+    new_team = { 'name': team.name, 'bots': [] }
+    for bot in team.bots:
+      new_team['bots'].append({
+        'id': bot.id,
+        'name': bot.name
+      })
+    result['teams'].append(new_team)
+  return result
+
+
+@socketio.on('create_game')
+def on_create_game(bot_id):
+  bot_id = Bot.query.get(bot_id)

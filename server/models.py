@@ -1,4 +1,4 @@
-import enum, datetime
+import enum, datetime, uuid
 
 from server import app, db
 
@@ -38,8 +38,10 @@ class Game(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   bot_id = db.Column(db.Integer, db.ForeignKey('bots.id'), nullable=False)
   bot = db.relationship("Bot", foreign_keys=bot_id)
+  uuid = db.Column(db.String(128), nullable=False, index=True, unique=True)
   status = db.Column(db.Enum(GameStatus), nullable=False)
 
   def __init__(self, bot):
     self.bot = bot
     self.status = GameStatus.created
+    self.uuid = str(uuid.uuid4())

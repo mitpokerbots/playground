@@ -3,7 +3,7 @@ from flask import abort, session, g, Response, request, render_template
 from flask_socketio import emit, join_room
 import json
 
-from server import app, db, socketio
+from server import app, db, socketio, redis
 from server.models import Game, GameStatus, Bot, Team
 from server.tasks import play_live_game_task
 
@@ -95,3 +95,12 @@ def on_join_game(game_uuid):
   
   return game.as_json()
 
+
+@socketio.on('game_ping')
+def on_ping(game_uuid):
+  redis.publish(game_uuid, 'ping')
+
+
+@socketio.on('game_action')
+def on_action(game_uuid, game_action):
+  redis.publish(game_uuid, json.dumps(game_action))

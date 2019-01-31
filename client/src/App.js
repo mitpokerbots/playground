@@ -14,7 +14,7 @@ const connectURL = (
   (window.location.protocol + '//' + window.location.host)
 );
 const socket = io(connectURL, {
-  reconnectionAttempts: 3
+  reconnectionAttempts: 5
 });
 
 

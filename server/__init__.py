@@ -1,4 +1,6 @@
 import os
+import urlparse
+from redis import Redis
 from celery import Celery
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -14,6 +16,20 @@ migrate = Migrate(app, db)
 sslify = SSLify(app)
 socketio = SocketIO(app, message_queue=app.config['MESSAGE_QUEUE_URL'])
 
+def make_redis(flask_app):
+    url = flask_app.config['REDIS_URL']
+    if url is None:
+        raise Exception("Redis not properly configured")
+    parsed_url = urlparse.urlparse(url)
+
+    redis = Redis(
+        host=parsed_url.hostname or 'localhost',
+        port=parsed_url.port or 6379,
+        db=int(parsed_url.path[1:] or 0)
+    )
+    print redis.ping()
+    return redis
+
 def make_celery(flask_app):
     celery = Celery(flask_app.import_name, broker=flask_app.config['CELERY_BROKER_URL'])
     celery.conf.update(flask_app.config)
@@ -28,6 +44,7 @@ def make_celery(flask_app):
 
 
 celery_app = make_celery(app)
+redis = make_redis(app)
 
 import server.views
 import server.tasks

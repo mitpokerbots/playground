@@ -12,6 +12,7 @@ class ProdConfig(Config):
   SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI', None)
   CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', None)
   MESSAGE_QUEUE_URL = os.getenv('MESSAGE_QUEUE_URL', None)
+  REDIS_URL = os.getenv('REDIS_URL', None)
   SECRET_KEY = os.getenv('SECRET_KEY', None)
   AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', None)
   AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', None)
@@ -29,3 +30,4 @@ class DevConfig(Config):
   S3_BUCKET = 'pokerbots-dev'
   CELERY_BROKER_URL = 'pyamqp://'
   MESSAGE_QUEUE_URL = 'pyamqp://'
+  REDIS_URL = 'redis://'

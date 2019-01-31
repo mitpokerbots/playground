@@ -1,0 +1,6 @@
+.git
+.gitignore
+LICENSE
+README.md
+node_modules
+client/build

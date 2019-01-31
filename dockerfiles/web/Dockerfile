@@ -8,6 +8,10 @@ RUN pip install --upgrade pip
 RUN pip install -r /home/web/requirements.txt
 RUN pip install gevent gevent-websocket
 
+RUN apt-get install -y curl
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash
+RUN apt-get install nodejs
+
 USER web
 
 # copy the rest of the app

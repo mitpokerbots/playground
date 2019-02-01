@@ -1,7 +1,8 @@
 from functools import wraps
-from flask import abort, session, g, Response, request, render_template
+from flask import abort, session, g, Response, request, render_template, send_from_directory
 from flask_socketio import emit, join_room
 import json
+import os
 
 from server import app, db, socketio, redis
 from server.models import Game, GameStatus, Bot, Team
@@ -55,6 +56,15 @@ def admin_page():
 
     teams = Team.query.all()
     return render_template('admin.html', teams=teams)
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "":
+        return send_from_directory('build', path)
+    else:
+        return send_from_directory('build', 'index.html')
 
 
 @socketio.on('request_bots')

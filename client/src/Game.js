@@ -183,7 +183,7 @@ class Game extends Component {
                   </span>
                 )}
                 { ['CALL', 'CHECK', 'FOLD', 'WIN', 'TIE'].indexOf(log_item.type) !== -1 && (
-                  <span style={{ color: (log_item.player == 'bot') ? 'black' : '#016699' }}>
+                  <span style={{ color: (log_item.player === 'bot') ? 'black' : '#016699' }}>
                     { log_item.player === 'hero' && (<span>You </span>)}
                     { log_item.player === 'bot' && (<span>{ this.state.game.bot.team } </span>)}
                     <span>{ actionToPastTense[log_item.type] }.</span>
@@ -290,7 +290,7 @@ class Game extends Component {
               key={move.type}
               size='huge'
               basic
-              positive={ move.base_cost == 0 && move.type !== 'FOLD' }
+              positive={ move.base_cost === 0 && move.type !== 'FOLD' }
               negative={ move.type === 'FOLD' }
               onClick={() => this.handleAction(move.type)}>
               { move.type } ({ (['BET', 'RAISE'].indexOf(move.type) === -1) ? move.base_cost : this.state.selected_amount })
@@ -420,9 +420,9 @@ class Game extends Component {
           </div>
         </Segment>
       )
-    } else if (this.state.game.last_message.status == 'get_action') {
+    } else if (this.state.game.last_message.status === 'get_action') {
       return this.renderGetAction();
-    } else if (this.state.game.last_message.status == 'round_over') {
+    } else if (this.state.game.last_message.status === 'round_over') {
       return this.renderRoundOver();
     }
   }

@@ -3,10 +3,11 @@ services:
     build:
       path: .
       manifest: ./dockerfiles/web/Dockerfile
-    command: sdfg
+    command: python manage.py runserver
     domain: playground.pokerbots.org
     environment:
       - PRODUCTION=True
+      - WEB=True
       - SQLALCHEMY_DATABASE_URI
       - CELERY_BROKER_URL
       - MESSAGE_QUEUE_URL
@@ -17,7 +18,7 @@ services:
       - S3_REGION
       - S3_BUCKET
       - ADMIN_PASSWORD
-    port: 8000
+    port: 5000
     scale:
       cpu: 512
       memory: 512

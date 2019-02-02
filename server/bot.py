@@ -95,7 +95,7 @@ class Player(Bot):
         '''
         self.bankroll = new_round.bankroll
         self.opponent_bankroll = new_round.opponent_bankroll
-        if new_round.hand_num > 3:
+        if new_round.hand_num > 100:
             return self.force_shutdown()
 
     def handle_round_over(self, game, round, pot, cards, opponent_cards, board_cards, result, new_bankroll, new_opponent_bankroll, move_history):
@@ -134,7 +134,7 @@ class Player(Bot):
             'result': result,
             'move_history': move_history_to_json(move_history)
         })
-        time.sleep(8)
+        time.sleep(5)
 
     def get_action(self, game, round, pot, cards, board_cards, legal_moves, cost_func, move_history, time_left, min_amount=None, max_amount=None):
         '''

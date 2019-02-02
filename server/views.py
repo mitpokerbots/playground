@@ -61,10 +61,11 @@ def admin_page():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "":
-        return send_from_directory('build', path)
-    else:
+    if path == '' or path.startswith('/game/'):
         return send_from_directory('build', 'index.html')
+    else:
+        return send_from_directory('build', path)
+        
 
 
 @socketio.on('request_bots')

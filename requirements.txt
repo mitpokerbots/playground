@@ -26,7 +26,7 @@ gunicorn==19.9.0
 humanize==0.5.1
 idna==2.8
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 jmespath==0.9.0
 kombu==4.2.1
 Mako==1.0.7

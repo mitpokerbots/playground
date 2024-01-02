@@ -22,7 +22,7 @@ from server.bot import Player
 from sqlalchemy.orm import raiseload
 
 DEPS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'deps'))
-ENGINE_PATH = os.path.join(DEPS_PATH, 'engine.jar')
+ENGINE_PATH = os.path.join(DEPS_PATH, 'engine-2024', 'engine.py')
 
 
 # A large portion of this code is copied from mitpokerbots/scrimmage/scrimmage/tasks.py
@@ -133,7 +133,7 @@ def run_bot_and_game(game, tmp_dir, bot_dir):
   game_dir = os.path.join(tmp_dir, 'game')
   os.mkdir(game_dir)
   write_config(game_dir, bot_dir)
-  engine_process = subprocess.Popen(['java', '-jar', ENGINE_PATH], cwd=game_dir, env=_get_environment())
+  engine_process = subprocess.Popen(['python', ENGINE_PATH], cwd=game_dir, env=_get_environment())
   try:
     game.send_message({
       'status': 'starting_game'

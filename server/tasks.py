@@ -16,7 +16,7 @@ from backports import tempfile
 from server import celery_app, app, db, socketio, redis
 from server.models import Bot, Team, Game, GameStatus
 from server.helpers import get_s3_object
-from server.pokerbots_parser import create_runner
+from server.pokerbots_parser.runner import create_runner
 from server.bot import Player
 
 from sqlalchemy.orm import raiseload
@@ -41,7 +41,7 @@ def _verify_zip(zip_file_path):
       for info in zip_ref.infolist():
         total_size += info.file_size
     return True, None
-  except zipfile.BadZipfile, zipfile.LargeZipfile:
+  except zipfile.BadZipfile:
     return False, 'Bot zip file is malformed'
 
 
@@ -74,9 +74,8 @@ def _compile_bot(bot_dir):
 
   return success, result
 
-
 def _download_and_verify(bot, tmp_dir):
-  bot_dir = os.path.join(tmp_dir, os.urandom(10).encode('hex'))
+  bot_dir = os.path.join(tmp_dir, os.urandom(10).hex())
   os.mkdir(bot_dir)
   bot_download_dir = os.path.join(bot_dir, 'download')
   os.mkdir(bot_download_dir)
@@ -84,9 +83,9 @@ def _download_and_verify(bot, tmp_dir):
   os.mkdir(bot_extract_dir)
 
   bot_zip_path = os.path.join(bot_download_dir, 'bot.zip')
-  with open(bot_zip_path, 'w') as bot_zip_file:
+  with open(bot_zip_path, 'wb') as bot_zip_file:
     if app.debug:
-      with open(os.path.join(DEPS_PATH, 'test_bot.zip')) as f:
+      with open(os.path.join(DEPS_PATH, 'test_bot.zip'), 'rb') as f:
         bot_zip_file.write(f.read())
     else:
       bot_zip_file.write(get_s3_object(bot.s3_key).read())
@@ -101,18 +100,16 @@ def _download_and_verify(bot, tmp_dir):
 
     bot_dir = None
     for root, dirs, files in os.walk(bot_extract_dir):
-      if 'SConstruct' in files:
-        os.chmod(os.path.join(root, 'pokerbot.sh'), 0777)
+      if 'commands.json' in files:
         bot_dir = root
         break
 
     if bot_dir is None:
-      return False, 'Bot zip file has no SConstruct'
+      return False, 'Bot dir has no commands.json'
 
-    success, compile_log = _compile_bot(bot_dir)
-    return success, bot_dir if success else compile_log
+    return True, bot_dir
   except OSError:
-    return False, 'Bot zip is missing files. (Maybe missing pokerbot.sh?)'
+    return False, 'Bot zip is missing files. (Maybe missing commands.json?)'
 
 
 def _get_environment():
@@ -124,7 +121,7 @@ def _get_environment():
 
 
 def write_config(game_dir, bot_dir):
-  with open(os.path.join(game_dir, 'config.txt'), 'w') as config_file:
+  with open(os.path.join(game_dir, 'config.py'), 'w') as config_file:
     config_txt = render_template('config.txt', bot_path=bot_dir)
     config_file.write(config_txt)
 
@@ -143,8 +140,12 @@ def run_bot_and_game(game, tmp_dir, bot_dir):
     pubsub = redis.pubsub()
     pubsub.subscribe(game.uuid)
     player = Player(db_game=game, pubsub=pubsub)
-    runner, sock = create_runner(player, 'localhost', 3000)
+    runner, sock = create_runner(player, 'localhost', 4514)
+    print(runner, sock)
     if runner is None or sock is None:
+      os.listdir(game_dir)
+      os.listdir(bot_dir)
+      os.listdir(tmp_dir)
       raise Exception("Couldn't connect to socket")
     player.set_sock(sock)
     runner.run()
@@ -170,7 +171,7 @@ def play_live_game(game):
     if not success:
       game.status = GameStatus.completed
       game.send_message({
-        'message': 'The bot failed to compile, so you win!'
+        'message': 'The bot failed to compile, so you win!' + bot_dir
       })
       return
 

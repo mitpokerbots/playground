@@ -3,12 +3,11 @@ from collections import namedtuple
 '''
 Below are actions that the player is allowed to take.
 '''
+from collections import namedtuple
 
-# Organizer note: ensure these match
-# engine/src/pokerbots/engine/player/socketplayer/Parser.java
 FoldAction = namedtuple('FoldAction', [])
 CallAction = namedtuple('CallAction', [])
 CheckAction = namedtuple('CheckAction', [])
-ExchangeAction = namedtuple('ExchangeAction', [])
-BetAction = namedtuple('BetAction', ['amount'])
+# we coalesce BetAction and RaiseAction for convenience
 RaiseAction = namedtuple('RaiseAction', ['amount'])
+BidAction = namedtuple('BidAction', ['amount'])

@@ -156,7 +156,7 @@ class Game extends Component {
                   <Divider />
                   </div>
                 )}
-                { ['BET', 'RAISE'].indexOf(log_item.type) !== -1 && (
+                { ['RAISE'].indexOf(log_item.type) !== -1 && (
                   <span style={{ color: (log_item.player === 'bot') ? 'black' : '#016699' }}>
                     { log_item.player === 'hero' && (<span>You </span>)}
                     { log_item.player === 'bot' && (<span>{ this.state.game.bot.team } </span>)}

@@ -10,7 +10,7 @@ import Game from './Game';
 
 const connectURL = (
   (process.env.NODE_ENV === 'development') ?
-  (window.location.protocol + '//' + window.location.hostname + ":5000") :
+  ("http://localhost:5000") :
   (window.location.protocol + '//' + window.location.host)
 );
 const socket = io(connectURL, {

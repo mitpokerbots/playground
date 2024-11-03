@@ -23,7 +23,8 @@ class ProdConfig(Config):
 class DevConfig(Config):
   ENV = 'development'
   DEBUG = True
-  SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(os.path.dirname(__file__), '..', 'dev.db')
+  # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(os.path.dirname(__file__), '..', 'dev.db')
+  SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:@localhost:5432/pbots'
   SQLALCHEMY_TRACK_MODIFICATIONS = True
   SECRET_KEY = 'SUPER SECRET KEY'
   PREFERRED_URL_SCHEME = 'http'

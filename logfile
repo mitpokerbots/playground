@@ -1,0 +1,12 @@
+2024-12-22 20:41:25.108 PST [1159] LOG:  starting PostgreSQL 14.15 (Homebrew) on aarch64-apple-darwin24.1.0, compiled by Apple clang version 16.0.0 (clang-1600.0.26.4), 64-bit
+2024-12-22 20:41:25.110 PST [1159] LOG:  listening on IPv6 address "::1", port 5432
+2024-12-22 20:41:25.110 PST [1159] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2024-12-22 20:41:25.111 PST [1159] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2024-12-22 20:41:25.112 PST [1160] LOG:  database system was shut down at 2024-12-22 20:41:24 PST
+2024-12-22 20:41:25.114 PST [1159] LOG:  database system is ready to accept connections
+2024-12-22 21:15:31.041 PST [4389] FATAL:  lock file "postmaster.pid" already exists
+2024-12-22 21:15:31.041 PST [4389] HINT:  Is another postmaster (PID 1159) running in data directory "/Users/alexanderzhang/pbots"?
+2024-12-22 21:15:31.138 PST [4391] ERROR:  database "pbots" already exists
+2024-12-22 21:15:31.138 PST [4391] STATEMENT:  CREATE DATABASE pbots;
+2024-12-22 21:18:38.027 PST [4454] FATAL:  lock file "postmaster.pid" already exists
+2024-12-22 21:18:38.027 PST [4454] HINT:  Is another postmaster (PID 1159) running in data directory "/Users/alexanderzhang/pbots"?

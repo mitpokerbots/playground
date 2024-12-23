@@ -12,10 +12,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_sslify import SSLify
 from flask_socketio import SocketIO
-import flask_cors
+from flask_cors import CORS
 
 app = Flask(__name__, static_folder='build')
-flask_cors.CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:4000"}})
+
 
 config_object_str = 'server.config.ProdConfig' if os.environ.get('PRODUCTION', False) else 'server.config.DevConfig'
 app.config.from_object(config_object_str)
@@ -23,6 +24,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 sslify = SSLify(app)
 socketio = SocketIO(app, message_queue=app.config['MESSAGE_QUEUE_URL'], cors_allowed_origins=["http://localhost:4000"])
+
 
 def make_redis(flask_app):
     url = flask_app.config['REDIS_URL']

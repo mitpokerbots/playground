@@ -55,12 +55,12 @@ def replace_imported_bots(json_text):
             db.session.add(new_bot)
     db.session.commit()
 
-@app.route('/hello', methods=['GET', 'POST'])
+@app.route('/hello', methods=['GET', 'POST', 'OPTIONS'])
 def check():
     print('What is going on?')
     return "Hello World"
 
-@app.route('/admin', methods=['GET', 'POST'])
+@app.route('/admin', methods=['GET', 'POST', 'OPTIONS'])
 @admin_required
 def admin_page():
     if request.method == 'POST':

@@ -1,4 +1,4 @@
-from server.pokerbots_parser.actions import  FoldAction, CallAction, CheckAction, RaiseAction, BidAction
+from server.pokerbots_parser.actions import  FoldAction, CallAction, CheckAction, RaiseAction
 from server.pokerbots_parser.bot import Bot
 import socket
 import time
@@ -29,9 +29,6 @@ def move_history_to_json(move_history):
         }
         if data[0] in ['POST', 'BET', 'RAISE']:
             d['amount'] = int(data[1])
-        elif data[0] == 'EXCHANGE' and data[-1] == 'A':
-            d['old'] = data[1].split(',')
-            d['new'] = data[2].split(',')
         elif data[0] == 'SHOW':
             d['cards'] = data[1:3]
         elif data[0] == 'DEAL':
@@ -39,7 +36,7 @@ def move_history_to_json(move_history):
         history.append(d)
     return history
 
-def legal_moves_to_json(legal_moves, min_amount, max_amount):
+def legal_moves_to_json(legal_moves, min_amount, max_amount, continue_cost):
     moves = []
     for cls in legal_moves:
         d = {
@@ -49,6 +46,8 @@ def legal_moves_to_json(legal_moves, min_amount, max_amount):
             d['min'] = min_amount
             d['max'] = max_amount
             d['base_cost'] = 0
+        elif cls is CallAction:
+            d['base_cost'] = continue_cost
         else:
             d['base_cost'] = 0
         moves.append(d)
@@ -62,6 +61,8 @@ class Player(Bot):
         self.bankroll = 0
         self.opponent_bankroll = 0
         self.pubsub = pubsub
+        self.past_moves = []
+        self.current_street = 0
 
     def set_sock(self, sock):
         self.sock = sock
@@ -85,35 +86,32 @@ class Player(Bot):
 
     def handle_new_round(self, game_state, round_state, active):
         '''
-        Called when a new round starts. Called Game.num_rounds times.
+        Called when a new round starts. Called NUM_ROUNDS times.
 
         Arguments:
-        game: the pokerbots.Game object for the new round.
-        new_round: the new pokerbots.Round object.
+        game_state: the GameState object.
+        round_state: the RoundState object.
+        active: your player's index.
 
         Returns:
         Nothing.
         '''
         self.bankroll = game_state.bankroll
         self.opponent_bankroll =  -1 * game_state.bankroll
+        self.past_moves = []
+        self.current_street = 0
+
         if game_state.round_num > 100:
             return self.force_shutdown()
 
     def handle_round_over(self, game_state, terminal_state, active):
         '''
-        Called when a round ends. Called Game.num_rounds times.
+        Called when a round ends. Called NUM_ROUNDS times.
 
         Arguments:
-        game: the pokerbots.Game object.
-        round: the pokerbots.Round object.
-        pot: the pokerbots.Pot object.
-        cards: the cards you held when the round ended.
-        opponent_cards: the cards your opponent held when the round ended, or None if they never showed.
-        board_cards: the cards on the board when the round ended.
-        result: 'win', 'loss' or 'tie'
-        new_bankroll: your total bankroll at the end of this round.
-        new_opponent_bankroll: your opponent's total bankroll at the end of this round.
-        move_history: a list of moves that occurred during this round, earliest moves first.
+        game_state: the GameState object.
+        terminal_state: the TerminalState object.
+        active: your player's index.
 
         Returns:
         Nothing.
@@ -128,25 +126,27 @@ class Player(Bot):
         if self.done:
             return
 
-
-        board_cards = terminal_state.deck[:street]  # the board cards
-        opp_pip = terminal_state.pips[1-active]  # the number of chips your opponent has contributed to the pot this round of betting
-        my_pip = terminal_state.pips[active]  # the number of chips you have contributed to the pot this round of betting
-        my_stack = terminal_state.stacks[active]  # the number of chips you have remaining
-        opp_stack = terminal_state.stacks[1-active]  # the number of chips your opponent has remaining
+        board_cards = previous_state.deck[:street]  # the board cards
+        my_bounty = previous_state.bounties[active]  # your current bounty rank
+        my_pip = previous_state.pips[active]  # the number of chips you have contributed to the pot this round of betting
+        my_stack = previous_state.stacks[active]  # the number of chips you have remaining
+        opp_stack = previous_state.stacks[1-active]  # the number of chips your opponent has remaining
         
         my_contribution = 400 - my_stack  # the number of chips you have contributed to the pot
         opp_contribution = 400 - opp_stack  # the number of chips your opponent has contributed to the pot
 
+        # if self.current_street != street:
+        #     self.current_street = street
+        #     self.past_moves.append('DEAL:' + ('Flop' if street == 3 else ('Turn' if street == 4 else 'River')))
+        if not opp_cards and my_delta > 0:
+            self.past_moves.append('FOLD:bot')
+
         pot = {
             'pip': my_pip,
             'bets': my_contribution,
-            'num_exchanges': 0,
-            'exchanges': 0,
+            'bounty_rank': my_bounty,
             'total': my_contribution,
             'opponent_bets': opp_contribution,
-            'opponent_num_exchanges': 0,
-            'opponent_exchanges': 0,
             'opponent_total': opp_contribution,
             'grand_total': my_contribution + opp_contribution
         }
@@ -154,36 +154,31 @@ class Player(Bot):
         self.db_game.send_message({
             'status': 'round_over',
             'round_num': game_state.round_num,
-            'bankroll': terminal_state.stacks[active],
+            'bankroll': self.bankroll,
             'new_bankroll': game_state.bankroll,
-            'opponent_bankroll': terminal_state.stacks[1 - active],
+            'opponent_bankroll': self.opponent_bankroll,
             'new_opponent_bankroll': -1*game_state.bankroll,
             'pot': pot,
             'cards': my_cards,
             'opponent_cards': opp_cards if opp_cards else ['??', '??'],
             'board_cards': board_cards,
             'result': ('win' if my_delta > 0 else ('loss' if my_delta < 0 else 'tie')),
-            'move_history': move_history_to_json([])
+            'move_history': move_history_to_json(self.past_moves)
         })
         time.sleep(5)
 
     def get_action(self, game_state, round_state, active):
         '''
         Where the magic happens - your code should implement this function.
-        Called any time the server needs an action from your bot.
+        Called any time the engine needs an action from your bot.
 
         Arguments:
-        game: the pokerbots.Game object.
-        round: the pokerbots.Round object.
-        pot: the pokerbots.Pot object.
-        cards: an array of your cards, in common format.
-        board_cards: an array of cards on the board. This list has length 0, 3, 4, or 5.
-        legal_moves: a set of the move classes that are legal to make.
-        cost_func: a function that takes a move, and returns additional cost of that move. Your returned move will raise your pot.contribution by this amount.
-        move_history: a list of moves that have occurred during this round so far, earliest moves first.
-        time_left: a float of the number of seconds your bot has remaining in this match (not round).
-        min_amount: if BetAction or RaiseAction is valid, the smallest amount you can bet or raise to (i.e. the smallest you can increase your pip).
-        max_amount: if BetAction or RaiseAction is valid, the largest amount you can bet or raise to (i.e. the largest you can increase your pip).
+        game_state: the GameState object.
+        round_state: the RoundState object.
+        active: your player's index.
+
+        Returns:
+        Your action.
         '''
         if self.done:
             return
@@ -201,21 +196,34 @@ class Player(Bot):
         opp_pip = round_state.pips[1-active]  # the number of chips your opponent has contributed to the pot this round of betting
         my_stack = round_state.stacks[active]  # the number of chips you have remaining
         opp_stack = round_state.stacks[1-active]  # the number of chips your opponent has remaining
-        my_bid = round_state.bids[active]  # How much you bid previously (available only after auction)
-        opp_bid = round_state.bids[1-active]  # How much opponent bid previously (available only after auction)
+        my_bounty = round_state.bounties[active]  # What is your bounty rank?
         continue_cost = opp_pip - my_pip  # the number of chips needed to stay in the pot
         my_contribution = 400 - my_stack  # the number of chips you have contributed to the pot
         opp_contribution = 400 - opp_stack  # the number of chips your opponent has contributed to the pot
 
+        if continue_cost == 0:
+            if (not self.past_moves or (self.past_moves[-1][:6] == 'RAISE:' and self.past_moves[-1][-2:] == ':A')):
+                self.past_moves.append('CALL:bot')
+            elif (self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A' and not bool(active)):
+                self.past_moves.append('CHECK:bot')
+        
+        if self.current_street != street:
+            self.current_street = street
+            self.past_moves.append('DEAL:' + ('Flop' if street == 3 else ('Turn' if street == 4 else 'River')))
+
+            if (active and continue_cost == 0):
+                self.past_moves.append('CHECK:bot')
+
+        if my_contribution != 1 and continue_cost > 0:
+            self.past_moves.append('RAISE:' + str(continue_cost) + ':bot')
+        
+
         pot = {
             'pip': my_pip,
             'bets': my_contribution,
-            'num_exchanges': 0,
-            'exchanges': 0,
             'total': my_contribution,
+            'bounty_rank': my_bounty,
             'opponent_bets': opp_contribution,
-            'opponent_num_exchanges': 0,
-            'opponent_exchanges': 0,
             'opponent_total': opp_contribution,
             'grand_total': my_contribution + opp_contribution
         }
@@ -228,13 +236,13 @@ class Player(Bot):
             'pot': pot,
             'cards': round_state.hands[active],
             'opponent_cards': ['??', '??'],
-            'board_cards': round_state.deck[:street],
-            'move_history': move_history_to_json([]),
-            'legal_moves': legal_moves_to_json(legal_actions, min_raise, max_raise)
+            'board_cards': board_cards,
+            'move_history': move_history_to_json(self.past_moves),
+            'legal_moves': legal_moves_to_json(legal_actions, min_raise, max_raise, continue_cost)
         })
 
         while True:
-            message = self.pubsub.get_message(timeout=50)
+            message = self.pubsub.get_message(timeout=200)
             if message is None:
                 print("None message, therefore timeout")
                 return self.force_shutdown()
@@ -250,14 +258,19 @@ class Player(Bot):
             data = json.loads(message['data'])
 
             if data['type'] == 'FOLD':
+                self.past_moves.append('FOLD:A')
                 return FoldAction()
             elif data['type'] == 'CHECK':
+                self.past_moves.append('CHECK:A')
                 return CheckAction()
             elif data['type'] == 'CALL':
+                self.past_moves.append('CALL:A')
                 return CallAction()
             elif data['type'] == 'BET':
+                self.past_moves.append('RAISE:' + str(data['amount']) + ':A')
                 return RaiseAction(amount=data['amount'])
             elif data['type'] == 'RAISE':
+                self.past_moves.append('RAISE:' + str(data['amount']) + ':A')
                 return RaiseAction(amount=data['amount'])
             else:
                 return

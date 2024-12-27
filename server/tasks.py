@@ -22,7 +22,7 @@ from server.bot import Player
 from sqlalchemy.orm import raiseload
 
 DEPS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'deps'))
-ENGINE_PATH = os.path.join(DEPS_PATH, 'engine', 'engine.py')
+ENGINE_PATH = os.path.join(DEPS_PATH, 'engine-2025', 'engine.py')
 
 
 # A large portion of this code is copied from mitpokerbots/scrimmage/scrimmage/tasks.py

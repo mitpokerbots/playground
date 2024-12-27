@@ -115,7 +115,6 @@ class Game extends Component {
         max_amount = move.max || min_amount;
       });      
     }
-    console.log("Blah", min_amount, max_amount);
 
     this.setState({
       game: newGame,
@@ -156,7 +155,7 @@ class Game extends Component {
                   <Divider />
                   </div>
                 )}
-                { ['RAISE'].indexOf(log_item.type) !== -1 && (
+                { ['BET', 'RAISE'].indexOf(log_item.type) !== -1 && (
                   <span style={{ color: (log_item.player === 'bot') ? 'black' : '#016699' }}>
                     { log_item.player === 'hero' && (<span>You </span>)}
                     { log_item.player === 'bot' && (<span>{ this.state.game.bot.team } </span>)}
@@ -170,16 +169,6 @@ class Game extends Component {
                     { log_item.player === 'bot' && (<span>{ this.state.game.bot.team } </span>)}
                     <span>posted </span>
                     { log_item.amount } { (log_item.amount === 1) ? 'chip.' : 'chips.' }
-                  </span>
-                )}
-                { log_item.type === 'EXCHANGE' && (
-                  <span style={{ color: (log_item.player === 'bot') ? 'black' : '#016699' }}>
-                  { log_item.player === 'hero' && (
-                    <span>You exchanged { log_item.old.join(', ') } for { log_item.new.join(', ') }.</span>
-                  )}
-                  { log_item.player === 'bot' && (
-                    <span>{ this.state.game.bot.team } exchanged.</span>
-                  )}
                   </span>
                 )}
                 { ['CALL', 'CHECK', 'FOLD', 'WIN', 'TIE'].indexOf(log_item.type) !== -1 && (
@@ -256,12 +245,12 @@ class Game extends Component {
             <Statistic.Label>Pot size</Statistic.Label>
           </Statistic>
           <Statistic>
-            <Statistic.Value>{ this.state.game.last_message.pot.num_exchanges }</Statistic.Value>
-            <Statistic.Label>Your Exchanges</Statistic.Label>
+            <Statistic.Value>{ this.state.game.last_message.pot.bounty_rank }</Statistic.Value>
+            <Statistic.Label>Your Bounty Rank</Statistic.Label>
           </Statistic>
           <Statistic>
-            <Statistic.Value>{ this.state.game.last_message.pot.bets + this.state.game.last_message.pot.pip }</Statistic.Value>
-            <Statistic.Label>Your bets</Statistic.Label>
+            <Statistic.Value>{ this.state.game.last_message.pot.total }</Statistic.Value>
+            <Statistic.Label>Your Contribution</Statistic.Label>
           </Statistic>
         </Statistic.Group>
         <Divider />

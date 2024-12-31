@@ -12,8 +12,8 @@ To run locally (cd into directory first), do:
 To run the server and worker, run in separate tabs:
 
 - `sudo rabbitmq-server`
-- `python manage.py runserver`
 - `redis-server`
+- `python manage.py runserver`
 - `celery -A server.celery_app worker --loglevel=info --concurrency=1`
 
 Then to run the frontend do:

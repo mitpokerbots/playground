@@ -66,8 +66,7 @@ class Runner():
                     round_state = RoundState(0, 0, pips, stacks, hands, None, [], None)
                 elif clause[0] == 'G':
                     bounties = [-1, -1]
-                    ranks = {'2':0, '3':1, '4':2, '5':3, '6':4, '7':5, '8':6, '9':7, 'T':8, 'J':9, 'Q':10, 'K':11, 'A':12}
-                    bounties[active] = ranks[clause[1:]]
+                    bounties[active] = clause[1:]
                     round_state = RoundState(round_state.button, round_state.street, round_state.pips, round_state.stacks,
                                              round_state.hands, bounties, round_state.deck, round_state.previous_state)
                     if round_flag:

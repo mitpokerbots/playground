@@ -39,7 +39,7 @@ const Card = (props) => {
               <td>&nbsp;</td>
             </tr>
             <tr>
-              <td style={{ textAlign: 'center', fontSize: '2em', width: '50px', padding: '0.2em 0' }}>
+              <td style={{ textAlign: 'center', fontSize: '2em', width: '65px', height: '50px', padding: '0.2em 0' }}>
                 &nbsp;
               </td>
             </tr>
@@ -52,23 +52,8 @@ const Card = (props) => {
     );
   }
   return (
-    <div style={{ border: '1px solid grey', borderRadius: '5px', display: 'inline-block', color: (card[1] === 's' || card[1] === 'c') ? 'black' : 'red', margin: '0 0.5em' }}>
-      <table>
-        <tbody>
-          <tr style={{ textAlign: 'left' }}>
-            <td>{ card[1].toUpperCase() }</td>
-          </tr>
-          <tr>
-            <td style={{ textAlign: 'center', fontSize: '2em', width: '50px', padding: '0.2em 0' }}>
-              { card[0] === 'T' && '10'}
-              { card[0] !== 'T' && card[0] }
-            </td>
-          </tr>
-          <tr>
-            <td style={{ textAlign: 'right' }}>{ card[1].toUpperCase() }</td>
-          </tr>
-        </tbody>
-      </table>
+    <div style={{ display: 'inline-block', margin: '0 0.5em' }}>
+      <img src={`/cards/${card[0] + card[1].toLowerCase()}.jpg`} style={{ width: '68px' }} alt={card}/>
     </div>
   );
 }

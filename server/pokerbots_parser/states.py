@@ -23,8 +23,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
         Determines if each player hit their bounty card during the round.
 
         A bounty is hit if the player's bounty card rank appears in either:
-        - Player 1's hole cards
-        - Player 2's hole cards
+        - Their hole cards
         - The community cards dealt so far
 
         Returns:
@@ -32,10 +31,11 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
                 - First boolean indicates if Player 1's bounty was hit
                 - Second boolean indicates if Player 2's bounty was hit
         '''
-        cards = self.hands[0] + self.hands[1] + ([] if self.street == 0 else self.deck[:self.street])
+        cards0 = self.hands[0] + ([] if self.street == 0 else self.deck.peek(self.street))
+        cards1 = self.hands[1] + ([] if self.street == 0 else self.deck.peek(self.street))
         ranks = {'2':0, '3':1, '4':2, '5':3, '6':4, '7':5, '8':6, '9':7, 'T':8, 'J':9, 'Q':10, 'K':11, 'A':12}
-        return (self.bounties[0] in [ranks[card[0]] for card in cards],
-                self.bounties[1] in [ranks[card[0]] for card in cards])
+        return (self.bounties[0] in [ranks[card[0]] for card in cards0],
+                self.bounties[1] in [ranks[card[0]] for card in cards1])
 
     def showdown(self):
         '''

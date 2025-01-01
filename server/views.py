@@ -8,13 +8,6 @@ from server import app, db, socketio, redis
 from server.models import Game, GameStatus, Bot, Team
 from server.tasks import play_live_game_task
 
-@app.after_request
-def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', 'http://localhost:4000')
-  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-  return response
-
 def _check_auth(username, password):
   """This function is called to check if a username /
   password combination is valid.
@@ -47,7 +40,6 @@ def replace_imported_bots(json_text):
     Team.query.delete()
     data = json.loads(json_text)
     for team in data['teams']:
-        print(team)
         new_team = Team(team['name'])
         db.session.add(new_team)
         for bot in team['bots']:
@@ -57,7 +49,6 @@ def replace_imported_bots(json_text):
 
 @app.route('/hello', methods=['GET', 'POST', 'OPTIONS'])
 def check():
-    print('What is going on?')
     return "Hello World"
 
 @app.route('/admin', methods=['GET', 'POST', 'OPTIONS'])

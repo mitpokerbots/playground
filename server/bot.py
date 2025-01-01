@@ -228,9 +228,7 @@ class Player(Bot):
 
             # Ensure the correct player acts first
             if continue_cost == 0:
-                if active == 1:  # If you are the small blind, opponent (big blind) acts first post-flop
-                    self.past_moves.append('CHECK:A')
-                else:  # If you are the big blind, you act first post-flop
+                if active == 0:  # If you are the big blind, you act first post-flop
                     self.past_moves.append('CHECK:bot')
 
         # Log actions during the current street
@@ -243,9 +241,7 @@ class Player(Bot):
         # Avoid logging a third check or duplicate actions
         if continue_cost == 0 and opp_pip == my_pip:
             if not (self.past_moves and self.past_moves[-1].startswith('CHECK')):
-                if active == 1:
-                    self.past_moves.append('CHECK:A')
-                else:
+                if active == 0:
                     self.past_moves.append('CHECK:bot')
 
         # Correctly log the opponent's call if they are the small blind
@@ -276,32 +272,19 @@ class Player(Bot):
         })
 
         while True:
-            message = self.pubsub.get_message(timeout=200)
+            message = self.pubsub.get_message(timeout=15)
             if message is None:
-                print("None message, therefore timeout")
-                return self.force_shutdown()
+                # None message, therefore timeout
+                self.force_shutdown()
+                return FoldAction()
 
             if message.get('type') == 'subscribe':
                 continue
-
-            print(message)
 
             if message['data'].decode("utf-8") == 'ping':
                 continue
 
             data = json.loads(message['data'])
-
-            # Fix 2 & 3: Log opponent's actions
-            if data.get('player') == 'opponent':
-                if data['type'] == 'CALL':
-                    self.past_moves.append('CALL:bot')
-                elif data['type'] == 'RAISE':
-                    self.past_moves.append(f'RAISE:{data["amount"]}:bot')
-                elif data['type'] == 'FOLD':
-                    self.past_moves.append('FOLD:bot')
-                elif data['type'] == 'CHECK':
-                    self.past_moves.append('CHECK:bot')
-                # Add more opponent actions here if necessary
 
             if data['type'] == 'FOLD':
                 self.past_moves.append('FOLD:A')
@@ -312,9 +295,6 @@ class Player(Bot):
             elif data['type'] == 'CALL':
                 self.past_moves.append('CALL:A')
                 return CallAction()
-            elif data['type'] == 'BET':
-                self.past_moves.append(f'RAISE:{data["amount"]}:A')
-                return RaiseAction(amount=data['amount'])
             elif data['type'] == 'RAISE':
                 self.past_moves.append(f'RAISE:{data["amount"]}:A')
                 return RaiseAction(amount=data['amount'])

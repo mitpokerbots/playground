@@ -72,7 +72,15 @@ const Card = (props) => {
               <td>&nbsp;</td>
             </tr>
             <tr>
-              <td style={{ textAlign: 'center', fontSize: '2em', width: '65px', height: '50px', padding: '0.2em 0' }}>
+              <td
+                style={{
+                  textAlign: "center",
+                  fontSize: "2em",
+                  width: "65px",
+                  height: "50px",
+                  padding: "0.2em 0",
+                }}
+              >
                 &nbsp;
               </td>
             </tr>
@@ -85,8 +93,12 @@ const Card = (props) => {
     );
   }
   return (
-    <div style={{ display: 'inline-block', margin: '0 0.5em' }}>
-      <img src={`/cards/${card[0] + card[1].toLowerCase()}.jpg`} style={{ width: '68px' }} alt={card}/>
+    <div style={{ display: "inline-block", margin: "0 0.5em" }}>
+      <img
+        src={`/cards/${card[0] + card[1].toLowerCase()}.jpg`}
+        style={{ width: "68px" }}
+        alt={card}
+      />
     </div>
   );
 };
@@ -149,7 +161,7 @@ class Game extends Component {
   renderGameLog() {
     var log = this.state.game.last_message.move_history.slice().reverse();
 
-    var actionToPastTense = {
+    const actionToPastTense = {
       BET: "bet",
       RAISE: "raised",
       POST: "posted",
@@ -158,6 +170,14 @@ class Game extends Component {
       CALL: "called",
       FOLD: "folded",
       CHECK: "checked",
+      DEAL: "dealt",
+    };
+
+    const playerColor = (player) => {
+      if (player === "hero") return "#016699"; // Hero color
+      if (player === "bot") return "black"; // Bot color
+      if (player === "table") return "grey"; // Table color
+      return "black";
     };
 
     return (
@@ -173,18 +193,27 @@ class Game extends Component {
               <Feed.Summary>
                 {log_item.type === "DEAL" && (
                   <div>
-                    <span style={{ color: "grey" }}>
+                    <span style={{ color: playerColor(log_item.player) }}>
                       The {log_item.street} was dealt.
                     </span>
                     <Divider />
                   </div>
                 )}
-                {["BET", "RAISE"].indexOf(log_item.type) !== -1 && (
-                  <span
-                    style={{
-                      color: log_item.player === "bot" ? "black" : "#016699",
-                    }}
-                  >
+                {log_item.type === "POST" && (
+                  <span style={{ color: playerColor(log_item.player) }}>
+                    {log_item.player === "hero" && <span>You </span>}
+                    {log_item.player === "bot" && (
+                      <span>{this.state.game.bot.team} </span>
+                    )}
+                    <span>
+                      posted a {log_item.amount === 1 ? "small" : "big"} blind
+                      of {log_item.amount}{" "}
+                      {log_item.amount === 1 ? "chip" : "chips"}.
+                    </span>
+                  </span>
+                )}
+                {["BET", "RAISE"].includes(log_item.type) && (
+                  <span style={{ color: playerColor(log_item.player) }}>
                     {log_item.player === "hero" && <span>You </span>}
                     {log_item.player === "bot" && (
                       <span>{this.state.game.bot.team} </span>
@@ -194,29 +223,10 @@ class Game extends Component {
                     {log_item.amount === 1 ? "chip." : "chips."}
                   </span>
                 )}
-                {log_item.type === "POST" && (
-                  <span
-                    style={{
-                      color: log_item.player === "bot" ? "black" : "#016699",
-                    }}
-                  >
-                    {log_item.player === "hero" && <span>You </span>}
-                    {log_item.player === "bot" && (
-                      <span>{this.state.game.bot.team} </span>
-                    )}
-                    <span>posted </span>
-                    {log_item.amount}{" "}
-                    {log_item.amount === 1 ? "chip." : "chips."}
-                  </span>
-                )}
-                {["CALL", "CHECK", "FOLD", "WIN", "TIE"].indexOf(
+                {["CALL", "CHECK", "FOLD", "WIN", "TIE"].includes(
                   log_item.type
-                ) !== -1 && (
-                  <span
-                    style={{
-                      color: log_item.player === "bot" ? "black" : "#016699",
-                    }}
-                  >
+                ) && (
+                  <span style={{ color: playerColor(log_item.player) }}>
                     {log_item.player === "hero" && <span>You </span>}
                     {log_item.player === "bot" && (
                       <span>{this.state.game.bot.team} </span>

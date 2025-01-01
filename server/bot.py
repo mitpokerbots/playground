@@ -97,12 +97,22 @@ class Player(Bot):
         Nothing.
         '''
         self.bankroll = game_state.bankroll
-        self.opponent_bankroll =  -1 * game_state.bankroll
+        self.opponent_bankroll = -1 * game_state.bankroll
         self.past_moves = []
         self.current_street = 0
 
         if game_state.round_num > 100:
             return self.force_shutdown()
+        
+        # Determine who posts the small and big blinds based on the active player
+        if active == 0:
+            # Hero is the small blind, bot is the big blind
+            self.past_moves.append('POST:1:A')   # Hero posts small blind of 1
+            self.past_moves.append('POST:2:bot') # Opponent posts big blind of 2
+        else:
+            # Bot is the small blind, hero is the big blind
+            self.past_moves.append('POST:1:bot') # Opponent posts small blind of 1
+            self.past_moves.append('POST:2:A')   # Hero posts big blind of 2
 
     def handle_round_over(self, game_state, terminal_state, active):
         '''
@@ -207,16 +217,40 @@ class Player(Bot):
             elif (self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A' and not bool(active)):
                 self.past_moves.append('CHECK:bot')
         
+        # Check for opponent's call before dealing a new street
         if self.current_street != street:
+            # Log opponent's call if they matched your bet before the new street
+            if opp_pip == my_pip and opp_pip > 0:
+                self.past_moves.append('CALL:bot')
+            
             self.current_street = street
             self.past_moves.append('DEAL:' + ('Flop' if street == 3 else ('Turn' if street == 4 else 'River')))
 
-            if (active and continue_cost == 0):
-                self.past_moves.append('CHECK:bot')
+            # Ensure the correct player acts first
+            if continue_cost == 0:
+                if active == 1:  # If you are the small blind, opponent (big blind) acts first post-flop
+                    self.past_moves.append('CHECK:A')
+                else:  # If you are the big blind, you act first post-flop
+                    self.past_moves.append('CHECK:bot')
 
+        # Log actions during the current street
         if my_contribution != 1 and continue_cost > 0:
-            self.past_moves.append('RAISE:' + str(continue_cost) + ':bot')
-        
+            if opp_pip == my_pip:
+                self.past_moves.append('CALL:bot')
+            elif opp_pip > my_pip:
+                self.past_moves.append('RAISE:' + str(opp_pip) + ':bot')
+
+        # Avoid logging a third check or duplicate actions
+        if continue_cost == 0 and opp_pip == my_pip:
+            if not (self.past_moves and self.past_moves[-1].startswith('CHECK')):
+                if active == 1:
+                    self.past_moves.append('CHECK:A')
+                else:
+                    self.past_moves.append('CHECK:bot')
+
+        # Correctly log the opponent's call if they are the small blind
+        if opp_pip > my_pip and continue_cost == 0:
+            self.past_moves.append('CALL:bot')
 
         pot = {
             'pip': my_pip,
@@ -257,6 +291,18 @@ class Player(Bot):
 
             data = json.loads(message['data'])
 
+            # Fix 2 & 3: Log opponent's actions
+            if data.get('player') == 'opponent':
+                if data['type'] == 'CALL':
+                    self.past_moves.append('CALL:bot')
+                elif data['type'] == 'RAISE':
+                    self.past_moves.append(f'RAISE:{data["amount"]}:bot')
+                elif data['type'] == 'FOLD':
+                    self.past_moves.append('FOLD:bot')
+                elif data['type'] == 'CHECK':
+                    self.past_moves.append('CHECK:bot')
+                # Add more opponent actions here if necessary
+
             if data['type'] == 'FOLD':
                 self.past_moves.append('FOLD:A')
                 return FoldAction()
@@ -267,10 +313,10 @@ class Player(Bot):
                 self.past_moves.append('CALL:A')
                 return CallAction()
             elif data['type'] == 'BET':
-                self.past_moves.append('RAISE:' + str(data['amount']) + ':A')
+                self.past_moves.append(f'RAISE:{data["amount"]}:A')
                 return RaiseAction(amount=data['amount'])
             elif data['type'] == 'RAISE':
-                self.past_moves.append('RAISE:' + str(data['amount']) + ':A')
+                self.past_moves.append(f'RAISE:{data["amount"]}:A')
                 return RaiseAction(amount=data['amount'])
             else:
                 return

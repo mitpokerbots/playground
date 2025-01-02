@@ -148,6 +148,8 @@ class Player(Bot):
         # if self.current_street != street:
         #     self.current_street = street
         #     self.past_moves.append('DEAL:' + ('Flop' if street == 3 else ('Turn' if street == 4 else 'River')))
+        if 'POST:1:bot' in self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A' and my_contribution == opp_contribution:
+            self.past_moves.append('CHECK:bot')
         if self.past_moves[-1][:6] == 'RAISE:' and self.past_moves[-1][-2:] == ':A' and my_contribution == opp_contribution:
             self.past_moves.append('CALL:bot')
         if not opp_cards and my_delta > 0:
@@ -221,7 +223,7 @@ class Player(Bot):
                     self.past_moves.append('CHECK:bot')
             if (self.past_moves[-1][:6] == 'RAISE:' and self.past_moves[-1][-2:] == ':A'):
                     self.past_moves.append('CALL:bot')
-            elif ('POST:1:bot' in self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A'): # you are big blind
+            elif ('POST:1:bot' in self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A' and self.current_street > 0): # you are big blind
                 self.past_moves.append('CHECK:bot')
             
             self.current_street = street
@@ -238,7 +240,8 @@ class Player(Bot):
             elif opp_pip > my_pip:
                 self.past_moves.append('RAISE:' + str(opp_pip) + ':bot')
 
-
+        if street == 0 and continue_cost == 0 and my_contribution == 2:
+            self.past_moves.append('CALL:bot')
 
         pot = {
             'pip': my_pip,

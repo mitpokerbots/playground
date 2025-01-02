@@ -148,6 +148,8 @@ class Player(Bot):
         # if self.current_street != street:
         #     self.current_street = street
         #     self.past_moves.append('DEAL:' + ('Flop' if street == 3 else ('Turn' if street == 4 else 'River')))
+        if self.past_moves[-1][:6] == 'RAISE:' and self.past_moves[-1][-2:] == ':A' and my_contribution == opp_contribution:
+            self.past_moves.append('CALL:bot')
         if not opp_cards and my_delta > 0:
             self.past_moves.append('FOLD:bot')
 
@@ -211,46 +213,47 @@ class Player(Bot):
         my_contribution = 400 - my_stack  # the number of chips you have contributed to the pot
         opp_contribution = 400 - opp_stack  # the number of chips your opponent has contributed to the pot
 
-        if continue_cost == 0:
-            if (not self.past_moves or (self.past_moves[-1][:6] == 'RAISE:' and self.past_moves[-1][-2:] == ':A')):
-                self.past_moves.append('CALL:bot')
-            elif (self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A' and not bool(active)):
-                self.past_moves.append('CHECK:bot')
-        
+        # if self.current_street == 0:
+        #     if continue_cost == 0:
+        #         if 'POST:1:bot' in self.past_moves:  # If you are the big blind, you act first post-flop
+        #             if my_pip == 0:
+        #                 self.past_moves.append('CHECK:bot')
+        #             else:
+        #                 self.past_moves.append('CALL:bot')
+
         # Check for opponent's call before dealing a new street
         if self.current_street != street:
             # Log opponent's call if they matched your bet before the new street
-            if opp_pip == my_pip and opp_pip > 0:
-                self.past_moves.append('CALL:bot')
+            if 'POST:1:A' in self.past_moves and self.current_street == 0: # you are small blind
+                if my_contribution == 2:
+                    self.past_moves.append('CHECK:bot')
+            if (self.past_moves[-1][:6] == 'RAISE:' and self.past_moves[-1][-2:] == ':A'):
+                    self.past_moves.append('CALL:bot')
+            elif ('POST:1:bot' in self.past_moves and self.past_moves[-1][:6] == 'CHECK:' and self.past_moves[-1][-2:] == ':A'): # you are big blind
+                self.past_moves.append('CHECK:bot')
             
             self.current_street = street
             self.past_moves.append('DEAL:' + ('Flop' if street == 3 else ('Turn' if street == 4 else 'River')))
 
-            # Ensure the correct player acts first
             if continue_cost == 0:
-                if active == 1:  # If you are the small blind, opponent (big blind) acts first post-flop
-                    self.past_moves.append('CHECK:A')
-                else:  # If you are the big blind, you act first post-flop
+                if 'POST:1:A' in self.past_moves:  # If you are the small blind, opponent (big blind) acts first post-flop
                     self.past_moves.append('CHECK:bot')
+
+            # if continue_cost == 0:
+            #     if 'POST:1:bot' in self.past_moves:  # If you are the big blind, you act first post-flop
+            #         if my_pip == 0:
+            #             self.past_moves.append('CHECK:bot')
+            #         else:
+            #             self.past_moves.append('CALL:bot')
 
         # Log actions during the current street
         if my_contribution != 1 and continue_cost > 0:
-            if opp_pip == my_pip:
+            if opp_pip == my_pip: # should never happen? if conitnue cost > 0 then they could not have called.
                 self.past_moves.append('CALL:bot')
             elif opp_pip > my_pip:
                 self.past_moves.append('RAISE:' + str(opp_pip) + ':bot')
 
-        # Avoid logging a third check or duplicate actions
-        if continue_cost == 0 and opp_pip == my_pip:
-            if not (self.past_moves and self.past_moves[-1].startswith('CHECK')):
-                if active == 1:
-                    self.past_moves.append('CHECK:A')
-                else:
-                    self.past_moves.append('CHECK:bot')
 
-        # Correctly log the opponent's call if they are the small blind
-        if opp_pip > my_pip and continue_cost == 0:
-            self.past_moves.append('CALL:bot')
 
         pot = {
             'pip': my_pip,
@@ -291,8 +294,7 @@ class Player(Bot):
 
             data = json.loads(message['data'])
 
-            # Fix 2 & 3: Log opponent's actions
-            if data.get('player') == 'opponent':
+            if data.get('player') == 'bot':
                 if data['type'] == 'CALL':
                     self.past_moves.append('CALL:bot')
                 elif data['type'] == 'RAISE':

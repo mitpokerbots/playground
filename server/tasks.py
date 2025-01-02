@@ -141,7 +141,6 @@ def run_bot_and_game(game, tmp_dir, bot_dir):
     pubsub.subscribe(game.uuid)
     player = Player(db_game=game, pubsub=pubsub)
     runner, sock = create_runner(player, 'localhost', 4514)
-    print(runner, sock)
     if runner is None or sock is None:
       os.listdir(game_dir)
       os.listdir(bot_dir)

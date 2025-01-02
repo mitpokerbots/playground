@@ -15,7 +15,7 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='build')
-CORS(app, resources={r"/*": {"origins": "http://localhost:4000"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 config_object_str = 'server.config.ProdConfig' if os.environ.get('PRODUCTION', False) else 'server.config.DevConfig'
@@ -23,7 +23,7 @@ app.config.from_object(config_object_str)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 sslify = SSLify(app)
-socketio = SocketIO(app, message_queue=app.config['MESSAGE_QUEUE_URL'], cors_allowed_origins=["http://localhost:4000"])
+socketio = SocketIO(app, message_queue=app.config['MESSAGE_QUEUE_URL'], cors_allowed_origins="*")
 
 
 def make_redis(flask_app):
@@ -37,7 +37,6 @@ def make_redis(flask_app):
         port=parsed_url.port or 6379,
         db=int(parsed_url.path[1:] or 0)
     )
-    print(redis.ping())
     return redis
 
 def make_celery(flask_app):

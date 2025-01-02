@@ -279,15 +279,14 @@ class Player(Bot):
         })
 
         while True:
-            message = self.pubsub.get_message(timeout=200)
+            message = self.pubsub.get_message(timeout=15)
             if message is None:
-                print("None message, therefore timeout")
-                return self.force_shutdown()
+                # None message, therefore timeout
+                self.force_shutdown()
+                return FoldAction()
 
             if message.get('type') == 'subscribe':
                 continue
-
-            print(message)
 
             if message['data'].decode("utf-8") == 'ping':
                 continue
@@ -314,9 +313,6 @@ class Player(Bot):
             elif data['type'] == 'CALL':
                 self.past_moves.append('CALL:A')
                 return CallAction()
-            elif data['type'] == 'BET':
-                self.past_moves.append(f'RAISE:{data["amount"]}:A')
-                return RaiseAction(amount=data['amount'])
             elif data['type'] == 'RAISE':
                 self.past_moves.append(f'RAISE:{data["amount"]}:A')
                 return RaiseAction(amount=data['amount'])

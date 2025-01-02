@@ -162,7 +162,6 @@ class Game extends Component {
     var log = this.state.game.last_message.move_history.slice().reverse();
 
     const actionToPastTense = {
-      BET: "bet",
       RAISE: "raised",
       POST: "posted",
       TIE: "tied",
@@ -212,7 +211,7 @@ class Game extends Component {
                     </span>
                   </span>
                 )}
-                {["BET", "RAISE"].includes(log_item.type) && (
+                {["RAISE"].includes(log_item.type) && (
                   <span style={{ color: playerColor(log_item.player) }}>
                     {log_item.player === "hero" && <span>You </span>}
                     {log_item.player === "bot" && (
@@ -331,7 +330,6 @@ class Game extends Component {
   };
 
   renderAction() {
-    console.log(this.state);
     return (
       <div>
         <Header style={{ textAlign: "center" }}>
@@ -349,7 +347,7 @@ class Game extends Component {
               onClick={() => this.handleAction(move.type)}
             >
               {move.type} (
-              {["BET", "RAISE"].indexOf(move.type) === -1
+              {("RAISE" !== move.type)
                 ? move.base_cost
                 : this.state.selected_amount}
               )

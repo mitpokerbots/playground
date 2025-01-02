@@ -213,14 +213,6 @@ class Player(Bot):
         my_contribution = 400 - my_stack  # the number of chips you have contributed to the pot
         opp_contribution = 400 - opp_stack  # the number of chips your opponent has contributed to the pot
 
-        # if self.current_street == 0:
-        #     if continue_cost == 0:
-        #         if 'POST:1:bot' in self.past_moves:  # If you are the big blind, you act first post-flop
-        #             if my_pip == 0:
-        #                 self.past_moves.append('CHECK:bot')
-        #             else:
-        #                 self.past_moves.append('CALL:bot')
-
         # Check for opponent's call before dealing a new street
         if self.current_street != street:
             # Log opponent's call if they matched your bet before the new street
@@ -238,13 +230,6 @@ class Player(Bot):
             if continue_cost == 0:
                 if 'POST:1:A' in self.past_moves:  # If you are the small blind, opponent (big blind) acts first post-flop
                     self.past_moves.append('CHECK:bot')
-
-            # if continue_cost == 0:
-            #     if 'POST:1:bot' in self.past_moves:  # If you are the big blind, you act first post-flop
-            #         if my_pip == 0:
-            #             self.past_moves.append('CHECK:bot')
-            #         else:
-            #             self.past_moves.append('CALL:bot')
 
         # Log actions during the current street
         if my_contribution != 1 and continue_cost > 0:
@@ -292,17 +277,6 @@ class Player(Bot):
                 continue
 
             data = json.loads(message['data'])
-
-            if data.get('player') == 'bot':
-                if data['type'] == 'CALL':
-                    self.past_moves.append('CALL:bot')
-                elif data['type'] == 'RAISE':
-                    self.past_moves.append(f'RAISE:{data["amount"]}:bot')
-                elif data['type'] == 'FOLD':
-                    self.past_moves.append('FOLD:bot')
-                elif data['type'] == 'CHECK':
-                    self.past_moves.append('CHECK:bot')
-                # Add more opponent actions here if necessary
 
             if data['type'] == 'FOLD':
                 self.past_moves.append('FOLD:A')

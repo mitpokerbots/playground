@@ -18,7 +18,7 @@ class ProdConfig(Config):
   AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', None)
   S3_REGION = os.getenv('S3_REGION', None)
   S3_BUCKET = os.getenv('S3_BUCKET', None)
-  PREFERRED_URL_SCHEME = 'https'
+  PREFERRED_URL_SCHEME = 'http'
 
 class DevConfig(Config):
   ENV = 'development'

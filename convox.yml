@@ -40,4 +40,4 @@ services:
       - S3_BUCKET
     scale:
       cpu: 1000
-      memory: 1536
+      memory: 1024

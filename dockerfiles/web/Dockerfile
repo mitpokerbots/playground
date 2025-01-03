@@ -31,5 +31,6 @@ WORKDIR /home/web
 RUN cp -r /home/web/client/build /home/web/server/build
 
 RUN ./gen-cert.sh
+RUN chown web:web cert.* && chmod 644 cert.crt && chmod 600 cert.key
 
 USER web

@@ -30,4 +30,6 @@ WORKDIR /home/web
 
 RUN cp -r /home/web/client/build /home/web/server/build
 
+RUN ./gen-cert.sh
+
 USER web

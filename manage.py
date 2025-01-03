@@ -8,7 +8,7 @@ manager.add_command("db", MigrateCommand)
 
 @manager.command
 def runserver():
-    socketio.run(app, host='0.0.0.0', port=5001)
+    socketio.run(app, host='0.0.0.0', port=5001, ssl_context=('cert.crt', 'cert.key'))
 
 if __name__ == "__main__":
     manager.run()

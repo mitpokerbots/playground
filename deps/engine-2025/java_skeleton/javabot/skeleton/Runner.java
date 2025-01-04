@@ -1,6 +1,7 @@
 package javabot.skeleton;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,6 +12,7 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import static java.util.Map.entry;
 
 /**
  * Interacts with the engine.
@@ -64,7 +66,7 @@ public class Runner {
         GameState gameState = new GameState(0, (float)0., 1);
         State roundState = new RoundState(0, 0, Arrays.asList(0, 0), Arrays.asList(0, 0),
                                           Arrays.asList(Arrays.asList(""), Arrays.asList("")),
-                                          Arrays.asList(""), null);
+                                          Arrays.asList(0, 0), Arrays.asList(""), null);
         int active = 0;
         boolean roundFlag = true;
         while (true) {
@@ -94,7 +96,16 @@ public class Runner {
                         List<Integer> pips = Arrays.asList(State.SMALL_BLIND, State.BIG_BLIND);
                         List<Integer> stacks = Arrays.asList(State.STARTING_STACK - State.SMALL_BLIND,
                                                              State.STARTING_STACK - State.BIG_BLIND);
-                        roundState = new RoundState(0, 0, pips, stacks, hands, deck, null);
+                        List<Character> bounties = Arrays.asList(' ', ' ');
+                        roundState = new RoundState(0, 0, pips, stacks, hands, bounties, deck, null);
+                        break;
+                    }
+                    case 'G': {
+                        List<Character> bounties = Arrays.asList(' ', ' ');
+                        bounties.set(active, leftover.charAt(0));
+                        RoundState maker = (RoundState)roundState;
+                        roundState = new RoundState(maker.button, maker.street, maker.pips, maker.stacks,
+                                                    maker.hands, bounties, maker.deck, maker.previousState);
                         if (roundFlag) {
                             this.pokerbot.handleNewRound(gameState, (RoundState)roundState, active);
                             roundFlag = false;
@@ -126,7 +137,7 @@ public class Runner {
                         }
                         RoundState maker = (RoundState)roundState;
                         roundState = new RoundState(maker.button, maker.street, maker.pips, maker.stacks,
-                                                    maker.hands, revisedDeck, maker.previousState);
+                                                    maker.hands, maker.bounties, revisedDeck, maker.previousState);
                         break;
                     }
                     case 'O': {
@@ -138,16 +149,21 @@ public class Runner {
                         revisedHands.set(1 - active, Arrays.asList(cards[0], cards[1]));
                         // rebuild history
                         roundState = new RoundState(maker.button, maker.street, maker.pips, maker.stacks,
-                                                    revisedHands, maker.deck, maker.previousState);
-                        roundState = new TerminalState(Arrays.asList(0, 0), roundState);
+                                                    revisedHands, maker.bounties, maker.deck, maker.previousState);
+                        roundState = new TerminalState(Arrays.asList(0, 0), null, roundState);
                         break;
                     }
                     case 'D': {
                         int delta = Integer.parseInt(leftover);
                         List<Integer> deltas = new ArrayList<Integer>(Arrays.asList(-1 * delta, -1 * delta));
                         deltas.set(active, delta);
-                        roundState = new TerminalState(deltas, ((TerminalState)roundState).previousState);
+                        roundState = new TerminalState(deltas, null, ((TerminalState)roundState).previousState);
                         gameState = new GameState(gameState.bankroll + delta, gameState.gameClock, gameState.roundNum);
+                        break;
+                    }
+                    case 'Y': {
+                        List<Boolean> bounty_hits = Arrays.asList(leftover.charAt(0) == '1', leftover.charAt(1) == '1');
+                        roundState = new TerminalState(((TerminalState)roundState).deltas, bounty_hits, ((TerminalState)roundState).previousState);
                         this.pokerbot.handleRoundOver(gameState, (TerminalState)roundState, active);
                         gameState = new GameState(gameState.bankroll, gameState.gameClock, gameState.roundNum + 1);
                         roundFlag = true;

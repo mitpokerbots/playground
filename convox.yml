@@ -1,5 +1,10 @@
+resources:
+  cache:
+    type: redis
 services:
   web:
+    resources:
+      - cache
     build:
       path: .
       manifest: ./dockerfiles/web/Dockerfile
@@ -23,10 +28,12 @@ services:
       cpu: 512
       memory: 512
   worker:
+    resources:
+      - cache
     build:
       path: .
       manifest: ./dockerfiles/worker/Dockerfile
-    command: celery -A server.celery_app worker --loglevel=info --concurrency=1
+    command: celery -A server.celery_app worker --loglevel=info --concurrency=1 --without-gossip
     environment:
       - PRODUCTION=True
       - SQLALCHEMY_DATABASE_URI

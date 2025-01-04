@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <sstream>
+#include <array>
+#include <vector>
+#include <map>
 
 namespace pokerbots::skeleton {
 

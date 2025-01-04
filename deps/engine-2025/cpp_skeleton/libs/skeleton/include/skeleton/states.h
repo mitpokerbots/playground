@@ -34,17 +34,16 @@ struct RoundState : public State {
   std::array<int, 2> pips;
   std::array<int, 2> stacks;
   std::array<std::array<std::string, 2>, 2> hands;
-  std::array<std::string, 2> bounties;
+  std::array<char, 2> bounties;
   std::array<std::string, 5> deck;
-  std::array<bool, 2> bounty_hits;
   StatePtr previousState;
 
   RoundState(int button, int street, std::array<int, 2> pips, std::array<int, 2> stacks,
-             std::array<std::array<std::string, 2>, 2> hands, std::array<std::string, 2> bounties,
-             std::array<std::string, 5> deck, std::array<bool, 2> bounty_hits, StatePtr previousState)
+             std::array<std::array<std::string, 2>, 2> hands, std::array<char, 2> bounties,
+             std::array<std::string, 5> deck, StatePtr previousState)
       : button(button), street(street), pips(std::move(pips)), stacks(std::move(stacks)),
         hands(std::move(hands)), bounties(std::move(bounties)), deck(std::move(deck)),
-        bounty_hits(std::move(bounty_hits)), previousState(std::move(previousState)) {}
+        previousState(std::move(previousState)) {}
 
   StatePtr showdown() const;
 
@@ -57,6 +56,8 @@ struct RoundState : public State {
   StatePtr proceed(Action action) const;
 
 private:
+  std::array<bool, 2> get_bounty_hits() const;
+
   std::ostream &doFormat(std::ostream &os) const override;
 };
 

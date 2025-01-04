@@ -56,19 +56,19 @@ class Runner():
                 if clause[0] == 'T':
                     game_state = GameState(game_state.bankroll, float(clause[1:]), game_state.round_num)
                 elif clause[0] == 'P':
-                    active = int(clause[1:])
+                    active = int(float(clause[1:]))
                 elif clause[0] == 'H':
                     hands = [[], []]
 
                     hands[active] = clause[1:].split(',')
                     pips = [SMALL_BLIND, BIG_BLIND]
                     stacks = [STARTING_STACK - SMALL_BLIND, STARTING_STACK - BIG_BLIND]
-                    round_state = RoundState(0, 0, pips, stacks, hands, None, [], None, None)
+                    round_state = RoundState(0, 0, pips, stacks, hands, None, [], None)
                 elif clause[0] == 'G':
-                    bounties = [-1, -1]
+                    bounties = ['-1', '-1']
                     bounties[active] = clause[1:]
                     round_state = RoundState(round_state.button, round_state.street, round_state.pips, round_state.stacks,
-                                             round_state.hands, bounties, round_state.deck, round_state.bounty_hits, round_state.previous_state)
+                                             round_state.hands, bounties, round_state.deck, round_state.previous_state)
                     if round_flag:
                         self.pokerbot.handle_new_round(game_state, round_state, active)
                         round_flag = False
@@ -79,10 +79,10 @@ class Runner():
                 elif clause[0] == 'K':
                     round_state = round_state.proceed(CheckAction())
                 elif clause[0] == 'R':
-                    round_state = round_state.proceed(RaiseAction(int(clause[1:])))
+                    round_state = round_state.proceed(RaiseAction(int(float(clause[1:]))))
                 elif clause[0] == 'B':
                     round_state = RoundState(round_state.button, round_state.street, round_state.pips, round_state.stacks,
-                                             round_state.hands, round_state.bounties, clause[1:].split(','), round_state.bounty_hits, round_state.previous_state)
+                                             round_state.hands, round_state.bounties, clause[1:].split(','), round_state.previous_state)
                 elif clause[0] == 'O':
                     # backtrack
                     round_state = round_state.previous_state
@@ -90,28 +90,28 @@ class Runner():
                     revised_hands[1-active] = clause[1:].split(',')
                     # rebuild history
                     round_state = RoundState(round_state.button, round_state.street, round_state.pips, round_state.stacks,
-                                             revised_hands, round_state.bounties, round_state.deck, round_state.bounty_hits, round_state.previous_state)
+                                             revised_hands, round_state.bounties, round_state.deck, round_state.previous_state)
                     round_state = TerminalState([0, 0], None, round_state)
                 elif clause[0] == 'D':
                     assert isinstance(round_state, TerminalState)
-                    delta = int(clause[1:])
+                    delta = int(float(clause[1:]))
                     deltas = [-delta, -delta]
                     deltas[active] = delta
-                    round_state = TerminalState(deltas, round_state.bounty_hits, round_state.previous_state)
+                    round_state = TerminalState(deltas, None, round_state.previous_state)
                     game_state = GameState(game_state.bankroll + delta, game_state.game_clock, game_state.round_num)
-                    game_state = GameState(game_state.bankroll, game_state.game_clock, game_state.round_num + 1)
-                    round_flag = True
                 elif clause[0] == 'Y':
                     assert isinstance(round_state, TerminalState)
-                    opponent_hit_bounty = (clause[1] == '1')
-                    round_state = TerminalState(round_state.deltas, opponent_hit_bounty, round_state.previous_state)
+                    hero_hit_bounty, opponent_hit_bounty = (clause[1] == '1'), (clause[2] == '1')
+                    round_state = TerminalState(round_state.deltas, [hero_hit_bounty, opponent_hit_bounty], round_state.previous_state)
                     self.pokerbot.handle_round_over(game_state, round_state, active)
+                    game_state = GameState(game_state.bankroll, game_state.game_clock, game_state.round_num + 1)
+                    round_flag = True
                 elif clause[0] == 'Q':
                     return
             if round_flag:  # ack the engine
                 self.send(CheckAction())
             else:
-                assert(active == round_state.button % 2)
+                assert active == round_state.button % 2
                 action = self.pokerbot.get_action(game_state, round_state, active)
                 self.send(action)
 

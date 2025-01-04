@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <map>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -75,26 +76,18 @@ public:
             std::array<int, 2> stacks = {
                 STARTING_STACK - SMALL_BLIND,
                 STARTING_STACK - BIG_BLIND};
-            std::array<std::string, 2> bounties;
-            std::array<bool, 2> bounty_hits = {false, false};
+            std::array<char, 2> bounties;
             roundState = std::make_shared<RoundState>(
                 0, 0, std::move(pips), std::move(stacks), std::move(hands), std::move(bounties), 
-                    std::move(deck), std::move(bounty_hits), nullptr);
-            if (roundFlag) {
-              pokerbot.handleNewRound(
-                  gameInfo,
-                  std::static_pointer_cast<const RoundState>(roundState), active);
-              roundFlag = false;
-            }
+                    std::move(deck), nullptr);
             break;
           }
           case 'G': {
-            std::array<std::string, 2> bounties;
-            bounties[active] = leftover;
+            std::array<char, 2> bounties = {' ', ' '};
+            bounties[active] = leftover[0];
             auto maker = std::static_pointer_cast<const RoundState>(roundState);
             roundState = std::make_shared<RoundState>(maker->button, maker->street, maker->pips, maker->stacks,
-                                                      maker->hands, bounties, maker->deck, maker->bounty_hits,
-                                                      maker->previousState);
+                                                      maker->hands, bounties, maker->deck, maker->previousState);
             if (roundFlag) {
               pokerbot.handleNewRound(
                   gameInfo,
@@ -129,8 +122,7 @@ public:
             }
             auto maker = std::static_pointer_cast<const RoundState>(roundState);
             roundState = std::make_shared<RoundState>(maker->button, maker->street, maker->pips, maker->stacks,
-                                                      maker->hands, maker->bounties, revisedDeck, maker->bounty_hits,
-                                                      maker->previousState);
+                                                      maker->hands, maker->bounties, revisedDeck, maker->previousState);
             break;
           }
           case 'O': {
@@ -143,8 +135,7 @@ public:
             revisedHands[1 - active] = {cards[0], cards[1]};
             // rebuild history
             roundState = std::make_shared<RoundState>(maker->button, maker->street, maker->pips, maker->stacks,
-                                                      revisedHands, maker->bounties, maker->deck, maker->bounty_hits,
-                                                      maker->previousState);
+                                                      revisedHands, maker->bounties, maker->deck, maker->previousState);
             roundState = std::make_shared<TerminalState>(std::array<int, 2>{0, 0}, NULL, roundState);
             break;
           }

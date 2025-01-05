@@ -118,3 +118,23 @@ def on_ping(game_uuid):
 @socketio.on('game_action')
 def on_action(game_uuid, game_action):
   redis.publish(game_uuid, json.dumps(game_action))
+
+
+@socketio.on('next_hand')
+def on_next_hand(game_uuid):
+    redis.publish(game_uuid, 'next_hand')
+
+
+@socketio.on('quit_game')
+def on_quit_game(game_uuid):
+    game = Game.query.filter(Game.uuid == game_uuid).one_or_none()
+    if game is None:
+        return None
+
+    # Update the game status to completed
+    game.status = GameStatus.completed
+    game.send_message({
+        'message': 'The game was quit by the player.'
+    })
+    db.session.commit()
+    redis.publish(game_uuid, 'quit_game')

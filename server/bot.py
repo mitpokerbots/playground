@@ -179,7 +179,6 @@ class Player(Bot):
             'result': ('win' if my_delta > 0 else ('loss' if my_delta < 0 else 'tie')),
             'move_history': move_history_to_json(self.past_moves)
         })
-        time.sleep(5)
 
     def get_action(self, game_state, round_state, active):
         '''

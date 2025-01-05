@@ -106,6 +106,10 @@ class Runner():
                     self.pokerbot.handle_round_over(game_state, round_state, active)
                     game_state = GameState(game_state.bankroll, game_state.game_clock, game_state.round_num + 1)
                     round_flag = True
+
+                    # Wait for the next hand signal
+                    self.wait_for_next_hand()
+
                 elif clause[0] == 'Q':
                     return
             if round_flag:  # ack the engine
@@ -114,6 +118,15 @@ class Runner():
                 assert active == round_state.button % 2
                 action = self.pokerbot.get_action(game_state, round_state, active)
                 self.send(action)
+
+    def wait_for_next_hand(self):
+        '''
+        Waits for the next hand signal from the client.
+        '''
+        while True:
+            message = self.pokerbot.pubsub.get_message(timeout=None)
+            if message and message['data'].decode("utf-8") == 'next_hand':
+                break
 
 
 def parse_args():

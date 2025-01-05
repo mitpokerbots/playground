@@ -347,7 +347,7 @@ class Game extends Component {
               onClick={() => this.handleAction(move.type)}
             >
               {move.type} (
-              {("RAISE" !== move.type)
+              {"RAISE" !== move.type
                 ? move.base_cost
                 : this.state.selected_amount}
               )
@@ -409,6 +409,16 @@ class Game extends Component {
     );
   }
 
+  handleNextHand = () => {
+    this.props.socket.emit("next_hand", this.props.match.params.id);
+  };
+
+  handleQuitGame = () => {
+    this.props.socket.emit("quit_game", this.props.match.params.id, () => {
+      this.props.history.push("/");
+    });
+  };
+
   renderRoundOver() {
     return (
       <Segment color="black">
@@ -459,6 +469,11 @@ class Game extends Component {
                   You tied for the pot.
                 </Header>
               )}
+              <div style={{ textAlign: "center", marginTop: "1em" }}>
+                <Button primary onClick={this.handleNextHand}>
+                  Next Hand
+                </Button>
+              </div>
             </Grid.Column>
             <Grid.Column width="6">{this.renderGameLog()}</Grid.Column>
           </Grid.Row>
@@ -498,30 +513,30 @@ class Game extends Component {
   }
 
   render() {
+    const { game, status } = this.state;
+
     return (
-      <div style={{ height: "100%" }}>
+      <div>
+        <Button
+          color="red"
+          onClick={this.handleQuitGame}
+          style={{
+            position: "fixed",
+            top: "80px",
+            right: "30px",
+            zIndex: 1000,
+          }}
+        >
+          Quit
+        </Button>
         <Container>
-          {this.state.status === "loading" && (
-            <Header as="h2" style={{ paddingTop: "2em", textAlign: "center" }}>
-              Loading game details...
-            </Header>
-          )}
-          {this.state.status === "loaded" && this.state.game == null && (
-            <div style={{ paddingTop: "2em", textAlign: "center" }}>
-              <Header as="h2">
-                The game you're looking for doesn't exist.
-              </Header>
-              <Button primary onClick={() => this.props.history.push("/")}>
-                Go back
-              </Button>
-            </div>
-          )}
-          {this.state.status === "loaded" && this.state.game != null && (
-            <div style={{ paddingTop: "2em" }}>
-              <Header as="h3" style={{ textAlign: "center" }}>
-                Hero vs. {this.state.game.bot.team} ({this.state.game.bot.name})
-              </Header>
-              {this.state.game.status === "created" && (
+          <Header as="h2" icon textAlign="center">
+            <Icon name="game" circular />
+            <Header.Content>Game</Header.Content>
+          </Header>
+          {status === "loaded" && game && (
+            <div>
+              {game.status === "created" && (
                 <Segment placeholder>
                   <Header icon>
                     <Icon name="spinner" loading />
@@ -529,8 +544,8 @@ class Game extends Component {
                   </Header>
                 </Segment>
               )}
-              {this.state.game.status === "in_progress" && this.renderGame()}
-              {this.state.game.status === "internal_error" && (
+              {game.status === "in_progress" && this.renderGame()}
+              {game.status === "internal_error" && (
                 <Segment placeholder>
                   <div style={{ textAlign: "center" }}>
                     <Header icon>
@@ -546,18 +561,17 @@ class Game extends Component {
                   </div>
                 </Segment>
               )}
-              {this.state.game.status === "completed" && (
+              {game.status === "completed" && (
                 <Segment placeholder>
                   <div style={{ textAlign: "center" }}>
                     <Header icon>
                       <Icon name="check" color="green" />
                       This game has completed.
-                      {this.state.game.last_message &&
-                        this.state.game.last_message.message && (
-                          <Header.Subheader>
-                            {this.state.game.last_message.message}
-                          </Header.Subheader>
-                        )}
+                      {game.last_message && game.last_message.message && (
+                        <Header.Subheader>
+                          {game.last_message.message}
+                        </Header.Subheader>
+                      )}
                     </Header>
                     <Button
                       primary
@@ -569,6 +583,17 @@ class Game extends Component {
                 </Segment>
               )}
             </div>
+          )}
+          {status === "loaded" && !game && (
+            <Segment placeholder>
+              <Header icon>
+                <Icon name="exclamation" color="red" />
+                Game data could not be loaded.
+              </Header>
+              <Button primary onClick={() => this.props.history.push("/")}>
+                Go back
+              </Button>
+            </Segment>
           )}
         </Container>
       </div>

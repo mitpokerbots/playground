@@ -180,6 +180,15 @@ class Player(Bot):
             'move_history': move_history_to_json(self.past_moves)
         })
 
+        while True:
+            message = self.pubsub.get_message(timeout=30)
+            if message is None:
+                break
+            if message['data'].decode("utf-8") == 'quit_game':
+                self.force_shutdown()
+            if (message['data'].decode("utf-8") == 'next_hand'):
+                break
+
     def get_action(self, game_state, round_state, active):
         '''
         Where the magic happens - your code should implement this function.
@@ -266,7 +275,7 @@ class Player(Bot):
         })
 
         while True:
-            message = self.pubsub.get_message(timeout=15)
+            message = self.pubsub.get_message(timeout=30)
             if message is None:
                 # None message, therefore timeout
                 self.force_shutdown()
@@ -274,6 +283,10 @@ class Player(Bot):
 
             if message.get('type') == 'subscribe':
                 continue
+
+            if (message['data'].decode("utf-8") == 'quit_game'):
+                self.force_shutdown()
+                return FoldAction()
 
             if message['data'].decode("utf-8") == 'ping':
                 continue

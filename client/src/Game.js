@@ -376,6 +376,18 @@ class Game extends Component {
         <Header dividing style={{ textAlign: "center" }}>
           Your move!
           <Header.Subheader>Select an action below</Header.Subheader>
+          <Button
+            color="red"
+            onClick={this.handleQuitGame}
+            style={{
+              position: "absolute",
+              top: "1.5%",
+              right: "2%",
+              zIndex: 1000,
+            }}
+          >
+          Quit
+        </Button>
         </Header>
         <Statistic.Group
           size="mini"
@@ -414,9 +426,7 @@ class Game extends Component {
   };
 
   handleQuitGame = () => {
-    this.props.socket.emit("quit_game", this.props.match.params.id, () => {
-      this.props.history.push("/");
-    });
+    this.props.socket.emit("quit_game", this.props.match.params.id);
   };
 
   renderRoundOver() {
@@ -424,6 +434,17 @@ class Game extends Component {
       <Segment color="black">
         <Header dividing style={{ textAlign: "center" }}>
           The round is over
+          <Header.Subheader>Click next hand to continue!</Header.Subheader>
+          <Button
+            color="red"
+            onClick={this.handleQuitGame}
+            style={{
+              position: "absolute",
+              top: "1.5%",
+              right: "2%",
+              zIndex: 1,
+            }}
+          >Quit</Button>
         </Header>
         <Statistic.Group
           size="mini"
@@ -517,25 +538,27 @@ class Game extends Component {
 
     return (
       <div>
-        <Button
-          color="red"
-          onClick={this.handleQuitGame}
-          style={{
-            position: "fixed",
-            top: "80px",
-            right: "30px",
-            zIndex: 1000,
-          }}
-        >
-          Quit
-        </Button>
         <Container>
-          <Header as="h2" icon textAlign="center">
-            <Icon name="game" circular />
-            <Header.Content>Game</Header.Content>
-          </Header>
-          {status === "loaded" && game && (
-            <div>
+        {status === "loading" && (
+            <Header as="h2" style={{ paddingTop: "2em", textAlign: "center" }}>
+              Loading game details...
+            </Header>
+          )}
+          {status === "loaded" && game == null && (
+            <div style={{ paddingTop: "2em", textAlign: "center" }}>
+              <Header as="h2">
+                The game you're looking for doesn't exist.
+              </Header>
+              <Button primary onClick={() => this.props.history.push("/")}>
+                Go back
+              </Button>
+            </div>
+          )}
+          {status === "loaded" && game != null && (
+            <div style={{ paddingTop: "2em" }}>
+              <Header as="h3" style={{ textAlign: "center" }}>
+                Hero vs. {game.bot.team} ({game.bot.name})
+              </Header>
               {game.status === "created" && (
                 <Segment placeholder>
                   <Header icon>

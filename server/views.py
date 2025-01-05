@@ -127,14 +127,4 @@ def on_next_hand(game_uuid):
 
 @socketio.on('quit_game')
 def on_quit_game(game_uuid):
-    game = Game.query.filter(Game.uuid == game_uuid).one_or_none()
-    if game is None:
-        return None
-
-    # Update the game status to completed
-    game.status = GameStatus.completed
-    game.send_message({
-        'message': 'The game was quit by the player.'
-    })
-    db.session.commit()
     redis.publish(game_uuid, 'quit_game')

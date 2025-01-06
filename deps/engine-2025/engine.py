@@ -112,7 +112,7 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
             else:
                 delta = self.stacks[0] - STARTING_STACK
                 if bounty_hit_1:
-                    delta *= delta * BOUNTY_RATIO - BOUNTY_CONSTANT
+                    delta = delta * BOUNTY_RATIO - BOUNTY_CONSTANT
         # if delta is not an integer, round it down or up depending on who's in position
         if abs(delta - math.floor(delta)) > 1e-6:
             delta = math.floor(delta) if self.button % 2 == 0 else math.ceil(delta)
@@ -573,7 +573,7 @@ class Game():
                 self.log.append(f"Bounties reset to {bounties[0]} for player {players[0].name} and {bounties[1]} for player {players[1].name}")
             self.run_round(players, bounties)
             self.log.append('Winning counts at the end of the round: ' + STATUS(players))
-            
+
             players = players[::-1]
             bounties = bounties[::-1]
         self.log.append('')

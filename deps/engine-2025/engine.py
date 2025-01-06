@@ -94,27 +94,29 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'pips', 'stacks'
 
         delta = 0
         if winner_index == 2:
+            # Case of split pots
             assert(self.stacks[0] == self.stacks[1]) # split pots only happen on the river + equal stacks
+            delta = STARTING_STACK - self.stacks[0]
             if bounty_hit_0 and not bounty_hit_1:
-                delta = (STARTING_STACK - self.stacks[1]) * (BOUNTY_RATIO - 1) / 2
+                delta = delta * (BOUNTY_RATIO - 1) / 2 + BOUNTY_CONSTANT
             elif not bounty_hit_0 and bounty_hit_1:
-                delta = (STARTING_STACK - self.stacks[0]) * (BOUNTY_RATIO - 1) / 2
+                delta = delta * (BOUNTY_RATIO - 1) / 2 + BOUNTY_CONSTANT
             else:
-                delta = (self.stacks[0] - self.stacks[1]) // 2
-                assert(delta == 0)
+                delta = 0
         else:
+            # Case of one player winning
             if winner_index == 0:
                 delta = STARTING_STACK - self.stacks[1]
                 if bounty_hit_0:
-                    delta *= BOUNTY_RATIO
+                    delta = delta * BOUNTY_RATIO + BOUNTY_CONSTANT
             else:
                 delta = self.stacks[0] - STARTING_STACK
                 if bounty_hit_1:
-                    delta *= BOUNTY_RATIO
+                    delta *= delta * BOUNTY_RATIO - BOUNTY_CONSTANT
         # if delta is not an integer, round it down or up depending on who's in position
         if abs(delta - math.floor(delta)) > 1e-6:
             delta = math.floor(delta) if self.button % 2 == 0 else math.ceil(delta)
-        return delta
+        return int(delta)
 
 
     def showdown(self) -> TerminalState:
@@ -463,6 +465,7 @@ class Game():
             self.log.append(STREET_NAMES[round_state.street - 3] + ' ' + PCARDS(board) +
                             PVALUE(players[0].name, STARTING_STACK-round_state.stacks[0]) +
                             PVALUE(players[1].name, STARTING_STACK-round_state.stacks[1]))
+            self.log.append(f"Current stacks: {round_state.stacks[0]}, {round_state.stacks[1]}")
             compressed_board = 'B' + CCARDS(board)
             self.player_messages[0].append(compressed_board)
             self.player_messages[1].append(compressed_board)
@@ -569,6 +572,8 @@ class Game():
                 bounties = [cardNames[random.randint(0, 12)], cardNames[random.randint(0, 12)]]
                 self.log.append(f"Bounties reset to {bounties[0]} for player {players[0].name} and {bounties[1]} for player {players[1].name}")
             self.run_round(players, bounties)
+            self.log.append('Winning counts at the end of the round: ' + STATUS(players))
+            
             players = players[::-1]
             bounties = bounties[::-1]
         self.log.append('')

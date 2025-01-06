@@ -23,3 +23,5 @@ ROUNDS_PER_BOUNTY = 25 # unlikely to change
 BOUNTY_RATIO = 1.5 # subject to change, ratio as a multiplier of pot
 
 PLAYER_TIMEOUT = 120
+
+BOUNTY_CONSTANT = 10

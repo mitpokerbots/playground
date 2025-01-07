@@ -17,11 +17,6 @@ RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get -t bullseye-backports install -yq openjdk-11-jdk-headless
 RUN apt-get install -yq gcc g++ scons autoconf libtool git libboost-all-dev libc6-dev
-# RUN apt-get install -yq nano
-
-# COPY ./deps/pbots_calc/libpbots_calc.so /usr/lib/libpbots_calc.so
-# COPY ./deps/pbots_calc/pbots_calc.h /usr/include/pbots_calc.h
-# COPY ./deps/pbots_calc/pbots_calc.py /usr/local/lib/python2.7/site-packages/pbots_calc.py
 
 USER worker
 

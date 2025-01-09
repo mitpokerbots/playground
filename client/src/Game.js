@@ -521,7 +521,7 @@ class Game extends Component {
           <div style={{ textAlign: "center" }}>
             <Header icon>
               <Icon name="spinner" loading />
-              Starting game...
+              Starting game... If waiting for a while, please come back after 5-10 minutes!
             </Header>
           </div>
         </Segment>

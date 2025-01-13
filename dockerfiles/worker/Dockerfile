@@ -16,7 +16,12 @@ RUN echo 'deb http://ftp.debian.org/debian bullseye-backports main' >> /etc/apt/
 RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get -t bullseye-backports install -yq openjdk-11-jdk-headless
+RUN apt-get install -yq software-properties-common
 RUN apt-get install -yq gcc g++ scons autoconf libtool libboost-all-dev libc6-dev
+RUN apt-get install -yq cmake
+
+RUN git clone https://github.com/fmtlib/fmt.git
+RUN cd fmt && mkdir build && cd build && cmake -DBUILD_SHARED_LIBS=TRUE .. && make && make install
 
 USER worker
 

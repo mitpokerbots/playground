@@ -17,7 +17,7 @@ RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get -t bullseye-backports install -yq openjdk-11-jdk-headless
 RUN apt-get install -yq software-properties-common
-RUN apt-get install -yq gcc g++ scons autoconf libtool libboost-all-dev libc6-dev
+RUN apt-get install -yq gcc g++ scons autoconf libtool git libboost-all-dev libc6-dev
 RUN apt-get install -yq cmake
 
 RUN git clone https://github.com/fmtlib/fmt.git

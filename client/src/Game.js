@@ -36,7 +36,8 @@ const PlaceholderCard = () => {
               style={{
                 textAlign: "center",
                 fontSize: "2em",
-                width: "50px",
+                width: "65px",
+                height: "50px",
                 padding: "0.2em 0",
               }}
             >
@@ -253,15 +254,12 @@ class Game extends Component {
               {this.state.game.last_message.board_cards.map((card, i) => (
                 <Card card={card} key={i} />
               ))}
-              {this.state.game.last_message.board_cards.length === 0 && (
-                <div>
-                  <PlaceholderCard />
-                  <PlaceholderCard />
-                  <PlaceholderCard />
-                  <PlaceholderCard />
-                  <PlaceholderCard />
-                </div>
-              )}
+
+              {Array(5 - this.state.game.last_message.board_cards.length)
+                .fill()
+                .map((_, i) => (
+                  <PlaceholderCard key={i} />
+                ))}
             </div>
           </Grid.Column>
         </Grid.Row>

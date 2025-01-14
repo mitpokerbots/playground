@@ -186,6 +186,7 @@ class Player(Bot):
                 break
             if message['data'].decode("utf-8") == 'quit_game':
                 self.force_shutdown()
+                break
             if (message['data'].decode("utf-8") == 'next_hand'):
                 break
 
@@ -291,7 +292,10 @@ class Player(Bot):
             if message['data'].decode("utf-8") == 'ping':
                 continue
 
-            data = json.loads(message['data'])
+            try:
+                data = json.loads(message['data'])
+            except:
+                return FoldAction()
 
             if data['type'] == 'FOLD':
                 self.past_moves.append('FOLD:A')
@@ -306,4 +310,4 @@ class Player(Bot):
                 self.past_moves.append(f'RAISE:{data["amount"]}:A')
                 return RaiseAction(amount=data['amount'])
             else:
-                return
+                return FoldAction()

@@ -115,6 +115,7 @@ class Game extends Component {
       min_amount: null,
       max_amount: null,
       pingInterval: null,
+      roundCount: 1,
     };
   }
 
@@ -151,12 +152,13 @@ class Game extends Component {
       });
     }
 
-    this.setState({
+    this.setState((prevState) => ({
       game: newGame,
       selected_amount: min_amount,
       min_amount,
       max_amount,
-    });
+      roundCount: prevState.roundCount,
+    }));
   };
 
   renderGameLog() {
@@ -368,6 +370,19 @@ class Game extends Component {
     );
   }
 
+  handleNextHand = () => {
+    this.props.socket.emit("next_hand", this.props.match.params.id);
+    setTimeout(() => {
+      this.setState(prevState => ({
+        roundCount: prevState.roundCount + 1
+      }));
+    }, 500);
+  };
+
+  handleQuitGame = () => {
+    this.props.socket.emit("quit_game", this.props.match.params.id);
+  };
+
   renderGetAction() {
     return (
       <Segment color="yellow">
@@ -384,8 +399,8 @@ class Game extends Component {
               zIndex: 1000,
             }}
           >
-          Quit
-        </Button>
+            Quit
+          </Button>
         </Header>
         <Statistic.Group
           size="mini"
@@ -419,19 +434,11 @@ class Game extends Component {
     );
   }
 
-  handleNextHand = () => {
-    this.props.socket.emit("next_hand", this.props.match.params.id);
-  };
-
-  handleQuitGame = () => {
-    this.props.socket.emit("quit_game", this.props.match.params.id);
-  };
-
   renderRoundOver() {
     return (
       <Segment color="black">
         <Header dividing style={{ textAlign: "center" }}>
-          The round is over
+          Round {this.state.roundCount} is over
           <Header.Subheader>Click next hand to continue!</Header.Subheader>
           <Button
             color="red"
@@ -537,7 +544,7 @@ class Game extends Component {
     return (
       <div>
         <Container>
-        {status === "loading" && (
+          {status === "loading" && (
             <Header as="h2" style={{ paddingTop: "2em", textAlign: "center" }}>
               Loading game details...
             </Header>

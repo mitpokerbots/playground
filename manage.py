@@ -1,13 +1,14 @@
-from flask_migrate import MigrateCommand
-from flask_script import Manager
+from flask.cli import FlaskGroup
+from flask_migrate import Migrate
 from server import app, db, socketio
 import ssl
 
-manager = Manager(app)
-manager.add_command("db", MigrateCommand)
+cli = FlaskGroup(app)
 
+migrate = Migrate()
+migrate.init_app(app, db)
 
-@manager.command
+@cli.command("runserver")
 def runserver():
     if app.debug:
         socketio.run(app, host='0.0.0.0', port=5001)
@@ -17,4 +18,4 @@ def runserver():
         socketio.run(app, host='0.0.0.0', port=5001, ssl_context=context)
 
 if __name__ == "__main__":
-    manager.run()
+    cli()

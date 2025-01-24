@@ -1,4 +1,4 @@
-FROM python:3.7-bullseye
+FROM python:3.12-bullseye
 
 RUN useradd -ms /bin/bash web
 
@@ -10,7 +10,7 @@ RUN pip install gevent gevent-websocket
 
 
 RUN apt-get install -y curl
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash
 RUN apt-get install -y nodejs
 
 # copy the rest of the app

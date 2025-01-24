@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import * as io from "socket.io-client";
+import { io } from "socket.io-client";
 import "semantic-ui-css/semantic.min.css";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 

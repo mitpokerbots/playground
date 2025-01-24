@@ -1,5 +1,5 @@
 import os
-
+os.environ['FLASK_APP'] = 'server'
 if os.environ.get('PRODUCTION', False) and os.environ.get('WEB', False):
     from gevent import monkey
     monkey.patch_all()
@@ -9,7 +9,7 @@ from redis import Redis
 from celery import Celery
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+
 from flask_sslify import SSLify
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -21,7 +21,6 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 config_object_str = 'server.config.ProdConfig' if os.environ.get('PRODUCTION', False) else 'server.config.DevConfig'
 app.config.from_object(config_object_str)
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 sslify = SSLify(app)
 socketio = SocketIO(app, message_queue=app.config['MESSAGE_QUEUE_URL'], cors_allowed_origins="*")
 

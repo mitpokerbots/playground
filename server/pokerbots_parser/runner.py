@@ -140,15 +140,3 @@ def run_bot(pokerbot, args):
     runner.run()
     socketfile.close()
     sock.close()
-
-def create_runner(bot, host, port):
-    try:
-        sock = socket.create_connection((host, port))
-    except socket.error as e:
-        print('Error connecting to {}:{}. Aborting. The exact error was {}'.format(host, port, e))
-        return None, None
-
-    socketfile = sock.makefile('rw')
-    runner = Runner(bot, socketfile)
-    
-    return runner, sock

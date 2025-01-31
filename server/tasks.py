@@ -16,7 +16,7 @@ from backports import tempfile
 from server import celery_app, app, db, socketio, redis
 from server.models import Bot, Team, Game, GameStatus
 from server.helpers import get_s3_object
-from server.pokerbots_parser.runner import create_runner
+from server.pokerbots_parser.runner import Runner
 from server.bot import Player
 
 from sqlalchemy.orm import raiseload
@@ -125,6 +125,16 @@ def write_config(game_dir, bot_dir):
     config_txt = render_template('config.txt', bot_path=bot_dir)
     config_file.write(config_txt)
 
+def create_runner(bot, host, port):
+    try:
+        sock = socket.create_connection((host, port))
+    except socket.error as e:
+        print('Error connecting to {}:{}. Aborting. The exact error was {}'.format(host, port, e))
+        return None, None
+
+    socketfile = sock.makefile('rw')
+    runner = Runner(bot, socketfile)
+    return runner, sock
 
 def run_bot_and_game(game, tmp_dir, bot_dir):
   game_dir = os.path.join(tmp_dir, 'game')
@@ -192,3 +202,5 @@ def play_live_game_task(game_id):
       game.status = GameStatus.internal_error
       game.send_message(None)
       raise
+
+

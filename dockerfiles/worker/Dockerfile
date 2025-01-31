@@ -20,9 +20,6 @@ RUN apt-get install -yq software-properties-common
 RUN apt-get install -yq gcc g++ scons autoconf libtool git libboost-all-dev libc6-dev
 RUN apt-get install -yq cmake
 
-RUN git clone https://github.com/fmtlib/fmt.git
-RUN cd fmt && mkdir build && cd build && cmake -DBUILD_SHARED_LIBS=TRUE .. && make && make install
-
 USER worker
 
 # copy the rest of the app

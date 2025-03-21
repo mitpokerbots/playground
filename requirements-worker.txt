@@ -93,7 +93,7 @@ tensorflow==2.11.0
 tensorflow-estimator==2.11.0
 termcolor==1.1.0
 threadpoolctl==2.1.0
-torch==1.13.1
+torch==2.4.0
 torchvision==0.14.1
 tornado==6.1
 tqdm==4.55.0
